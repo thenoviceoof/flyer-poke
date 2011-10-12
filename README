@@ -7,6 +7,19 @@ Flyering tracker
 Pronounced Sneaker-Shoe, taking the Lojban pronunciation of C and U
 
 
+STORIES
+================================================================================
+1. Upload flyer, email people a link to the doc and a button. Press button to
+   stop the nag. List to see who's done it.
+2. +auth
+
+
+TODO
+================================================================================
+
+
+
+
 INSTALL
 ================================================================================
 
