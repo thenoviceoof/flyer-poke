@@ -3,11 +3,10 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-class Flyer(db.Model):
-    id = db.StringProperty()
-    flyer = db.BlobProperty()
-    recipients = db.TextProperty()
-    date = db.DateTimeProperty(auto_now_add=True)
+from models import Flyer, Job
+
+from google.appengine.dist import use_library
+use_library('django', '0.96')
 
 class Index(webapp.RequestHandler):
     def get(self):
@@ -16,25 +15,24 @@ class Index(webapp.RequestHandler):
 
 class Upload(webapp.RequestHandler):
     def post(self):
-        flyer = Flyner()
-        flyer.recipients = self.request.get("content")
+        flyer = Flyer()
         pdf = self.request.get("flyer")
         flyer.flyer = db.Blob(pdf)
         flyer.put()
         flyer.id = str(flyer.key().id())
         flyer.put()
 
-        values = {}
-        self.response.out.write(template.render("templates/finish.html", values))
+        recipients = self.request.get("content")
+        lines = [r.split(" ") for r in recipients.strip(" \t").split("\n")
+                 if len(r)>0]
+        for line in lines:
+            email = line[0]
+            msg = " ".join(line[1:])
+            job = Job(flyer=flyer.id, email=email, msg=msg, count=5,
+                      state="init")
+            job.put()
 
-class Admin(webapp.RequestHandler):
-    def get(self):
-        flyer_req = db.GqlQuery("SELECT * "
-                                "FROM Flyer")
-        flyers = flyer_req.fetch(10)
-
-        values = {"flyers":flyers}
-        self.response.out.write(template.render("templates/list.html", values))
+        self.response.out.write(template.render("templates/finish.html", {}))
 
 class Pdf(webapp.RequestHandler):
     def get(self, id):
@@ -54,8 +52,8 @@ class Pdf(webapp.RequestHandler):
 application = webapp.WSGIApplication(
     [('/', Index),
      ('/upload', Upload),
-     ('/admin', Admin),
-     ('/pdf/(.*)',Pdf)],
+     ('/pdf/(.*)',Pdf)
+     ],
     debug=True)
 
 def main():
