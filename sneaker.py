@@ -1,5 +1,4 @@
 from google.appengine.ext import db
-from google.appengine.api import mail
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -17,7 +16,7 @@ class Index(webapp.RequestHandler):
 
 class Upload(webapp.RequestHandler):
     def post(self):
-        flyer = Flyer()
+        flyer = Flyner()
         flyer.recipients = self.request.get("content")
         pdf = self.request.get("flyer")
         flyer.flyer = db.Blob(pdf)
@@ -56,7 +55,7 @@ application = webapp.WSGIApplication(
     [('/', Index),
      ('/upload', Upload),
      ('/admin', Admin),
-     ('/pdf/(\d*)',Pdf)],
+     ('/pdf/(.*)',Pdf)],
     debug=True)
 
 def main():
@@ -64,4 +63,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

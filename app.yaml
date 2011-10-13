@@ -8,4 +8,8 @@ handlers:
   script: sneaker.py
 
 - url: /static
-  static_dir: static  
+  static_dir: static
+
+- url: /tasks
+  script: admin.py
+  login: admin

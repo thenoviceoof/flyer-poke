@@ -1,0 +1,5 @@
+cron:
+- description: daily summary job
+  url: /tasks/email
+  schedule: every day 07:00
+  timezone: EST
