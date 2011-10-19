@@ -3,6 +3,7 @@ from google.appengine.api import mail
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from apiproxy_errors import 
 
 import datetime
 import logging
@@ -14,6 +15,18 @@ use_library('django', '0.96')
 
 class Email(webapp.RequestHandler):
     def get(self):
+        msg = mail.EmailMessage(sender="beta.entity.k@gmail.com",
+                                to="nyh2105@columbia.edu")
+        msg.subject = "Hello world"
+        msg.body    = "Testing"
+        try:
+            msg.send()
+        except apiproxy_errors.OverQuotaError, message:
+            # Log the error.
+            logging.error(message)
+            # Display an informative message to the user.
+            self.response.out.write('The email could not be sent. '
+                                    'Please try again later.')
         self.response.out.write(template.render("templates/upload.html", {}))
 
 class Clean(webapp.RequestHandler):
