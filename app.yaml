@@ -8,8 +8,8 @@ handlers:
   script: admin.py
   login: admin
 
-- url: /.*
-  script: flyer.py
-
 - url: /static
   static_dir: static
+
+- url: /.*
+  script: flyer.py

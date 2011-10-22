@@ -1,0 +1,85 @@
+* {
+    margin:0 auto;
+    text-align:center;
+}
+
+html {
+    height:100%;
+}
+
+body {
+    background:-webkit-gradient(linear, left top, left bottom,
+				from(#E0DDFF), to(#66F));
+    background:-moz-linear-gradient(top,  #DDF,  #77F);
+}
+
+#logo {
+    display:block;
+    margin:0 auto;
+    text-align:center;
+    margin-top:5%;
+}
+
+#content {
+    margin-top:1em;
+}
+
+/* */
+
+p#blurb {
+    padding:1em;
+    font:22px sans-serif;
+    /* color:#888; */
+    color:black;
+    text-shadow:+2px +2px #EEE, +2px -2px #EEE, -2px +2px #EEE, -2px -2px #EEE, -2px 0px #EEE, 0px -2px #EEE, 2px 0px #EEE, 0px 2px #EEE; 
+}
+
+p#notice {
+    padding:1em;
+    font:22px sans-serif;
+    color:#888;
+}
+
+#signin-button {
+    padding:0.5em;
+    font-size:2em;
+}
+
+footer ul {
+    margin-top:1em;
+    font-family:sans-serif;
+}
+
+footer li {
+    display:inline-block;
+    padding:1em;
+}
+
+footer li a {
+    color:#555;
+}
+
+#about {
+    display:none;
+    position:absolute;
+    top:20%;
+    width:30%;
+    margin:0 auto;
+    padding:0.5em 0.8em 0.5em 0.0em;
+    font-size:1.4em;
+    word-spacing:0.1em;
+    line-height:1.1em;
+    background-color:#EEE;
+    border:0em black solid;
+    border-width:0.5em 0.5em 0.5em 0;
+    border-radius:0 2em 2em 0;
+}
+
+#about p {
+    padding:0.5em;
+    text-align:right;
+}
+
+#about a {
+    color:black;
+}

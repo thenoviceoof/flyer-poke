@@ -10,8 +10,8 @@ use_library('django', '0.96')
 
 class Index(webapp.RequestHandler):
     def get(self):
-        values = {}
-        self.response.out.write(template.render("templates/upload.html", values))
+        values = {"affiliation":"Columbia University"}
+        self.response.out.write(template.render("templates/index.html", values))
 
 class Upload(webapp.RequestHandler):
     def post(self):

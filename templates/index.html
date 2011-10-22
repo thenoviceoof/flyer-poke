@@ -1,14 +1,28 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Flyer Poke</title>
-  </head>
-  <body>
-    <h1>SneakerCU</h1>
+{% extends "master.html" %}
 
-    <form method="post" action="/login">
-      <button>SIGN THE FUCK IN</button>
-    </form>
+{% block content %}
+<p id="blurb">A fast and easy way to track who's flyering what when</p>
 
-  </body>
-</html>
+<p id="notice">Only open to {{ affiliation }} students</p>
+
+<form method="post" action="/login">
+  <button id="signin-button">SIGN THE FUCK IN</button>
+</form>
+
+<div id="about">
+  <p>Here at the ADI we've been having at least 2 events per week, and trying to keep track of who's flyered what with a Google doc just wasn't cutting it.</p>
+  <p>Hence, we built this app to keep track of that sort of stuff, and as an added bonus actively remind people to flyer.</p>
+  <p>Questions? Thoughts? Nathan's uni is nyh2105</p>
+  <a href="javascript:document.getElementById('about').style.display='none';">Done reading</a>
+</div>
+
+<footer>
+  <ul>
+    <li>
+      <a href="javascript:document.getElementById('about').style.display='block';">about</a>
+    </li>
+    <li><a href="http://adicu.com/">ADI</a></li>
+  </ul>
+</footer>
+{% endblock %}
+

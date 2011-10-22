@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Floke - {% block title %}Flyering notifier{% endblock %}</title>
+
+    <link rel="stylesheet" href="/static/css/reset.css" />
+    <link rel="stylesheet" href="/static/css/front.css" />
+  </head>
+  <body>
+
+    <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
+
+    <div id="content">
+      {% block content %}
+      {% endblock %}
+    </div>
+
+  </body>
+</html>
