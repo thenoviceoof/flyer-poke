@@ -1,21 +1,22 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Flyer Poke</title>
+{% extends "master.html" %}
 
-    <link rel="stylesheet" href="/static/css/front.css" />
-  </head>
-  <body>
-    <img src="/static/img/logo.png" />
+{% block style %}
+<link rel="stylesheet" href="/static/css/upload.css" />
+{% endblock %}
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <textarea name="content" cols="45" rows="10">
+{% block content %}
+<form action="/upload" method="post" enctype="multipart/form-data">
+  <textarea id="emails" name="content">
 example@example.com Flyer mudd
 another@example.com FLYER FASTER
-      </textarea><br/>
-      <input type="file" name="flyer" /><br/>
-      <input type="submit" value="Upload Flyer">
-    </form>
+</textarea>
+  <div id="file-area">
+    <div>
+      <h2>Drag n' Drop</h2>
+      <input id="file" type="file" name="flyer" /><br/>
+    </div>
+  </div>
+  <input id="submit" type="submit" value="LET'S DO THIS THING">
+</form>
+{% endblock %}
 
-  </body>
-</html>

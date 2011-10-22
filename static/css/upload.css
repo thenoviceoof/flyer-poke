@@ -1,0 +1,74 @@
+html {
+    height:100%;
+}
+
+body {
+    background:-webkit-gradient(linear, left top, left bottom,
+				from(#E0DDFF), to(#66F));
+    background:-moz-linear-gradient(top,  #DDF,  #77F);
+}
+
+#logo {
+    width:150px;
+    height:75px;
+}
+
+#content {
+    width:60%;
+    float:right;
+}
+
+/* -------------------------------------------------- */
+
+form {
+    margin:0;
+}
+
+textarea {
+    display:block;
+    width:90%;
+    height:15em;
+    margin:2% 5%;
+}
+
+#file-area {
+    height:10em;
+    padding:1em;
+    background-color:#fbfc9f;
+    border:3px #e4c54a dashed;
+}
+
+#file-area div {
+    display:block;
+    margin:0 auto;
+    margin-top:3em;
+    text-align:center;
+}
+
+#file-area h2 {
+    margin-bottom:1em;
+    font:1.5em sans-serif;
+    text-align:center;
+}
+
+input#submit {
+    width:100%;
+    font-size:2em;
+}
+
+/* -------------------------------------------------- */
+
+footer ul {
+    margin-top:1em;
+    font-family:sans-serif;
+}
+
+footer li {
+    display:inline-block;
+    padding:1em;
+}
+
+footer li a {
+    color:#555;
+}
+

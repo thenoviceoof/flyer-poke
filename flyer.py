@@ -13,6 +13,11 @@ class Index(webapp.RequestHandler):
         values = {"affiliation":"Columbia University"}
         self.response.out.write(template.render("templates/index.html", values))
 
+class Flyer(webapp.RequestHandler):
+    def post(self):
+        values = {}
+        self.response.out.write(template.render("templates/upload.html", values))
+
 class Upload(webapp.RequestHandler):
     def post(self):
         flyer = Flyer()
@@ -51,6 +56,7 @@ class Pdf(webapp.RequestHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index),
+     ('/flyer', Flyer),
      ('/upload', Upload),
      ('/pdf/(.*)',Pdf)
      ],
