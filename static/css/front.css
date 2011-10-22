@@ -24,7 +24,7 @@ body {
     margin-top:1em;
 }
 
-/* */
+/* -------------------------------------------------- */
 
 p#blurb {
     padding:1em;
@@ -59,10 +59,12 @@ footer li a {
     color:#555;
 }
 
+/* -------------------------------------------------- */
+
 #about {
     display:none;
     position:absolute;
-    top:20%;
+    top:15%;
     width:30%;
     margin:0 auto;
     padding:0.5em 0.8em 0.5em 0.0em;
@@ -82,4 +84,16 @@ footer li a {
 
 #about a {
     color:black;
+}
+
+/* -------------------------------------------------- */
+
+.cloud {
+    display:inline-block;
+    position:absolute;
+    padding:2em;
+    border:0.4em #AAA solid;
+    background-color:#EEE;
+    opacity:0.5;
+    border-radius:1em;
 }
