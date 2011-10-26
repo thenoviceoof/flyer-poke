@@ -3,3 +3,7 @@ cron:
   url: /tasks/email
   schedule: every day 07:00
   timezone: EST
+- description: cleaning out old entries
+  url: /tasks/clean
+  schedule: every day 06:00
+  timezone: EST

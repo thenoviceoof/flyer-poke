@@ -4,14 +4,28 @@
     <title>Flyer Poke</title>
   </head>
   <body>
-    <h1>SneakerCU</h1>
+    <h1>Flyers</h1>
 
-    {% for flyer in flyers %}
-    {{ flyer.id }}
-    {{ flyer.date }}
-    {{ flyer.recipients }}
-    <br/>
-    {% endfor %}
+    <ul>
+      {% for flyer in flyers %}
+      <li>
+	{{ flyer.id }}
+	{{ flyer.date }}
+	{{ flyer.name }}
+      </li>
+      {% endfor %}
+    </ul>
+
+    <h1>Jobs</h1>
+    <ul>
+      {% for job in jobs %}
+      <li>
+	{{ job.id }}
+	{{ job.email }}
+	{{ job.flyer.id }}
+      </li>
+      {% endfor %}
+    </ul>
 
   </body>
 </html>

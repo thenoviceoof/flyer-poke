@@ -1,7 +1,11 @@
-Hey! You're flyering for ADI. Here's a note about your assignment: {{ note }}
+Hey there! Have you finished flyering?
 
-<a href="http://###/pdf/{{ id }}">Download the flyer</a>
+{% for job in jobs %}
+<div style="margin:1em;padding:1em;border:3px gray solid;border-radius:0.5em;">
+  <h1 style="margin:2px;font-size:16pt;">{{ job.flyer.name }}</h1>
+  <a href="{{domain}}/pdf/{{ job.flyer_id }}">Download the flyer</a><br/><br/>
+  <a href="{{domain}}/done/{{ job.flyer_id }}/{{ job.email }}"><button>I'm done with this flyer</button></a>
+</div>
+{% endfor %}
 
-Once you're done, <a href="http://###/">click this</a>
-
-If you have no idea what this is, <a href="http://###/">just click here</a>
+If you have no idea what this is, <a href="{{domain}}/stop/{{ email }}">just click here, and we'll stop bothering you</a>

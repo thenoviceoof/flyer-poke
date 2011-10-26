@@ -4,6 +4,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.runtime import apiproxy_errors
+from google.appengine.api.app_identity import get_application_id
 
 import datetime, time
 import logging
@@ -21,11 +22,17 @@ class Email(webapp.RequestHandler):
         jobq = Job.all()
         jobs = list(jobq.fetch(BOUND))
         emails = list(set([j.email for j in jobs]))
+        domain = "http://%s.appspot.com" % get_application_id()
+
         for email in emails:
-            msg = mail.EmailMessage(sender="beta.entity.k@gmail.com",
+            js = [j for j in jobs if j.email == email]
+            msg = mail.EmailMessage(sender="Flyer Guy <beta.entity.k@gmail.com>",
                                     to=email)
-            msg.subject = "Hello world"
-            msg.body    = "Testing"
+            msg.subject = "[Flyer] Reminder"
+            msg.html    = template.render("templates/email.html",
+                                          {"jobs": js,
+                                           "domain": domain,
+                                           "email": email})
             try:
                 msg.send()
             except apiproxy_errors.OverQuotaError, (message,):
@@ -63,11 +70,11 @@ class Purge(webapp.RequestHandler):
 
 class List(webapp.RequestHandler):
     def get(self):
-        flyer_req = db.GqlQuery("SELECT * "
-                                "FROM Flyer")
-        flyers = flyer_req.fetch(BOUND)
+        flyerq = Flyer.all()
+        flyers = flyerq.fetch(BOUND)
+        jobs = Job.all().fetch(BOUND)
 
-        values = {"flyers":flyers}
+        values = {"flyers":flyers, "jobs": jobs}
         self.response.out.write(template.render("templates/list.html", values))
 
 application = webapp.WSGIApplication(

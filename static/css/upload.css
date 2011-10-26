@@ -54,6 +54,11 @@ form {
     border-left:5px solid black;
 }
 
+input#flyer-name {
+    font-size:1.5em;
+    width:100%;
+}
+
 textarea {
     display:block;
     width:90%;
