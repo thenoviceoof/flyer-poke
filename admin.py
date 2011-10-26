@@ -49,7 +49,7 @@ class Clean(webapp.RequestHandler):
         dt = datetime.datetime.fromtimestamp(time.mktime(t))
 
         jobs = Job.all()
-        jobs.filter("date <", datetime.datetime.now())
+        jobs.filter("date <", dt)
         jobs = jobs.fetch(BOUND)
         for job in jobs:
             job.delete()
