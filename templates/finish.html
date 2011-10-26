@@ -1,12 +1,14 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Flyer Poke</title>
-  </head>
-  <body>
-    <h1>SneakerCU</h1>
+{% extends "master.html" %}
 
-    DANK U COMRADE
+{% block style %}
+<link rel="stylesheet" href="/static/css/front.css" />
+{% endblock %}
 
-  </body>
-</html>
+{% block content %}
+<a href="/">
+  <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
+</a>
+
+<h1>All done!</h1>
+<h2>Have a nice day!</h2>
+{% endblock %}

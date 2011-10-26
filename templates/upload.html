@@ -5,17 +5,39 @@
 {% endblock %}
 
 {% block content %}
+<div id="about">
+  <a href="/">
+    <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
+  </a>
+
+  <p>
+    So this is how it goes: to the left is a box. You put emails and instructions in the box, like the example text.
+  </p>
+
+  <p>
+    Then you select a file to use, and then hit the big button at the bottom.
+  </p>
+
+  <p>
+    For now, it'll only do the next 3 days.
+  </p>
+</div>
+
 <form action="/upload" method="post" enctype="multipart/form-data">
-  <textarea id="emails" name="content">
+  <div id="">
+    <textarea id="emails" name="content">
 example@example.com Flyer mudd
 another@example.com FLYER FASTER
 </textarea>
+  </div>
+
   <div id="file-area">
     <div>
       <h2>Drag n' Drop</h2>
       <input id="file" type="file" name="flyer" /><br/>
     </div>
   </div>
+
   <input id="submit" type="submit" value="LET'S DO THIS THING">
 </form>
 {% endblock %}

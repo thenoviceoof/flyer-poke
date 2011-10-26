@@ -13,7 +13,7 @@ class Index(webapp.RequestHandler):
         values = {"affiliation":"Columbia University"}
         self.response.out.write(template.render("templates/index.html", values))
 
-class Flyer(webapp.RequestHandler):
+class Prep(webapp.RequestHandler):
     def post(self):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
@@ -45,7 +45,7 @@ class Pdf(webapp.RequestHandler):
                              "FROM Flyer "
                              "WHERE id=:1",
                              id)
-        flyer = flyers.fetch(1)[0]
+        flyer = flyers.get()
 
         if flyer.flyer:
             self.response.headers['Content-Type'] = "application/pdf"
@@ -56,7 +56,7 @@ class Pdf(webapp.RequestHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index),
-     ('/flyer', Flyer),
+     ('/flyer', Prep),
      ('/upload', Upload),
      ('/pdf/(.*)',Pdf)
      ],
