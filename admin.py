@@ -22,13 +22,14 @@ class Email(BaseHandler):
     def get(self):
         jobq = Job.all()
         jobs = list(jobq.fetch(BOUND))
-        emails = list(set([j.email for j in jobs]))
+        emails = set([j.email for j in jobs])
         domain = "http://%s.appspot.com" % get_application_id()
+        fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
 
         for email in emails:
             js = [j for j in jobs if j.email == email]
-            msg = mail.EmailMessage(sender="Flyer Guy <beta.entity.k@gmail.com>",
-                                    to=email)
+            msg = mail.EmailMessage(sender="Flyer Guy <%s>" % fromaddr,
+                                    to=email.email)
             msg.subject = "[Flyer] Reminder"
             msg.html    = template.render("templates/email.html",
                                           {"jobs": js,
