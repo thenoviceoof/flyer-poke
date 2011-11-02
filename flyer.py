@@ -3,26 +3,27 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from models import Flyer, Job
+from models import Flyer, Job, Email
+from lib import BaseHandler
 import logging
 import urllib
 
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
-class Index(webapp.RequestHandler):
+class Index(BaseHandler):
     def get(self):
         values = {"affiliation":"Columbia University"}
         self.response.out.write(template.render("templates/index.html", values))
 
-class Prep(webapp.RequestHandler):
+class Prep(BaseHandler):
     def get(self):
         self.post()
     def post(self):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
 
-class Upload(webapp.RequestHandler):
+class Upload(BaseHandler):
     def post(self):
         flyer = Flyer()
         pdf = self.request.get("flyer")
@@ -33,18 +34,26 @@ class Upload(webapp.RequestHandler):
         flyer.put()
 
         recipients = self.request.get("content")
-        lines = [r.split(" ") for r in recipients.strip(" \t").split("\n")
+        lines = [r.split(" ") for r in recipients.strip().split("\n")
                  if len(r)>0]
         for line in lines:
+            log = logging.getLogger(__name__)
+            log.info(line)
             email = line[0]
             msg = " ".join(line[1:])
-            job = Job(flyer_id=flyer.id, email=email, msg=msg, count=5,
+
+            email_obj = Email(email=str(email))
+            email_obj.put()
+            email_obj.id = str(email_obj.key().id())
+            email_obj.put()
+
+            job = Job(flyer_id=flyer.id, email=email_obj, msg=msg, count=5,
                       state="init", flyer=flyer)
             job.put()
 
         self.response.out.write(template.render("templates/finish.html", {}))
 
-class Pdf(webapp.RequestHandler):
+class Pdf(BaseHandler):
     def get(self, id):
         flyers = db.GqlQuery("SELECT * "
                              "FROM Flyer "
@@ -59,10 +68,14 @@ class Pdf(webapp.RequestHandler):
         else:
             self.error(404)
 
-class Done(webapp.RequestHandler):
+class Done(BaseHandler):
     def get(self, flyer_id, email):
+        emailq = Email.all()
+        emailq.filter("id =", email)
+        e = emailq.get()
+
         q = Job.all()
-        q.filter("email =", urllib.unquote(email))
+        q.filter("email =", e)
         q.filter("flyer_id =", flyer_id)
         job = q.get()
         if job:
@@ -71,7 +84,7 @@ class Done(webapp.RequestHandler):
         else:
             self.error(404)
 
-class Stop(webapp.RequestHandler):
+class Stop(BaseHandler):
     def get(self, email):
         q = Job.all()
         q.filter("email =", urllib.unquote(email))
@@ -84,7 +97,7 @@ application = webapp.WSGIApplication(
     [('/', Index),
      ('/flyer', Prep),
      ('/upload', Upload),
-     ('/pdf/(.*)', Pdf),
+     ('/pdf/(\d*)', Pdf),
      ('/done/(\d*)/(.*)', Done),
      ('/stop/(.*)', Stop),
      ],

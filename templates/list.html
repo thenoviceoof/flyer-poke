@@ -2,30 +2,47 @@
 <html>
   <head>
     <title>Flyer Poke</title>
+    <style>
+       td { padding:0.3em; border:1px black solid; }
+    </style>
   </head>
   <body>
     <h1>Flyers</h1>
 
-    <ul>
+    <table>
+      <tr>
+	<th>Flyer Id</th>
+	<th>Flyer Name</th>
+	<th>Date Created</th>
+      </tr>
       {% for flyer in flyers %}
-      <li>
-	{{ flyer.id }}
-	{{ flyer.date }}
-	{{ flyer.name }}
-      </li>
+      <tr>
+	<td>{{ flyer.id }}</td>
+	<td>{{ flyer.name }}</td>
+	<td>{{ flyer.date }}</td>
+      </tr>
       {% endfor %}
-    </ul>
+    </table>
 
     <h1>Jobs</h1>
-    <ul>
+    <table>
+      <tr>
+	<th>Job Id</th>
+	<th>Job Name</th>
+	<th>Email Id</th>
+	<th>Email</th>
+	<th>Message</th>
+      </tr>
       {% for job in jobs %}
-      <li>
-	{{ job.id }}
-	{{ job.email }}
-	{{ job.flyer.id }}
-      </li>
+      <tr>
+	<td>{{ job.flyer.id }}</td>
+	<td>{{ job.flyer.name }}</td>
+	<td>{{ job.email.id }}</td>
+	<td>{{ job.email.email }}</td>
+	<td>{{ job.msg }}</td>
+      </tr>
       {% endfor %}
-    </ul>
+    </table>
 
   </body>
 </html>

@@ -10,6 +10,7 @@ import datetime, time
 import logging
 
 from models import Flyer, Job
+from lib import BaseHandler
 
 from google.appengine.dist import use_library
 use_library('django', '0.96')
@@ -17,7 +18,7 @@ use_library('django', '0.96')
 # upper bound on number of API calls
 BOUND = 1000
 
-class Email(webapp.RequestHandler):
+class Email(BaseHandler):
     def get(self):
         jobq = Job.all()
         jobs = list(jobq.fetch(BOUND))
@@ -32,7 +33,7 @@ class Email(webapp.RequestHandler):
             msg.html    = template.render("templates/email.html",
                                           {"jobs": js,
                                            "domain": domain,
-                                           "email": email})
+                                           "email": email.email})
             try:
                 msg.send()
             except apiproxy_errors.OverQuotaError, (message,):
@@ -41,7 +42,7 @@ class Email(webapp.RequestHandler):
                 logging.error(message)
         self.response.out.write("Sent emails")
 
-class Clean(webapp.RequestHandler):
+class Clean(BaseHandler):
     def get(self):
         # clean out the old jobs
         t = list(time.localtime())
@@ -56,7 +57,7 @@ class Clean(webapp.RequestHandler):
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed old ones"}))
 
-class Purge(webapp.RequestHandler):
+class Purge(BaseHandler):
     def get(self):
         # clean out the old pdfs
         jobs = Job.all().fetch(BOUND)
@@ -68,7 +69,7 @@ class Purge(webapp.RequestHandler):
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed everything"}))
 
-class List(webapp.RequestHandler):
+class List(BaseHandler):
     def get(self):
         flyerq = Flyer.all()
         flyers = flyerq.fetch(BOUND)
