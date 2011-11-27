@@ -10,4 +10,3 @@ class BaseHandler(webapp.RequestHandler):
     if code == 404:
         self.response.out.write(template.render("templates/404.html", {}))
       # Output 404 page
-

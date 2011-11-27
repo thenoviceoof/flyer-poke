@@ -25,12 +25,13 @@ class Email(BaseHandler):
         emails = set([j.email for j in jobs])
         domain = "http://%s.appspot.com" % get_application_id()
         fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
+        date = time.strftime("%Y/%m/%d")
 
         for email in emails:
             js = [j for j in jobs if j.email == email]
             msg = mail.EmailMessage(sender="Flyer Guy <%s>" % fromaddr,
                                     to=email.email)
-            msg.subject = "[Flyer] Reminder"
+            msg.subject = "[Flyer] Reminder (%s)" % date
             msg.html    = template.render("templates/email.html",
                                           {"jobs": js,
                                            "domain": domain,

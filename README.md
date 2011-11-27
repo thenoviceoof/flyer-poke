@@ -4,7 +4,7 @@ flyer-poke
 
 Flyering tracker
 
-Pronounced wing-shoe, taking the Lojban pronunciation of C and U. I was originally drawn to a name that included sneaker, since people usually have to pound the pavement to actually get the flyers up. 
+Pokes people until they self-report they are done with flyering.
 
 
 STORIES
@@ -16,12 +16,10 @@ STORIES
 
 TODO
 ================================================================================
-
-
+ * see github issues tracker
 
 INSTALL
 ================================================================================
 
 USAGE
 ================================================================================
-

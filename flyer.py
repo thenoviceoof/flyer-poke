@@ -79,7 +79,8 @@ class Done(BaseHandler):
         q.filter("flyer_id =", flyer_id)
         job = q.get()
         if job:
-            job.delete()
+            job.state = "done"
+            job.put()
             self.response.out.write(template.render("templates/finish.html", {}))
         else:
             self.error(404)
