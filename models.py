@@ -42,8 +42,6 @@ class Flyer(db.Model):
 # a many-many link between flyers and emails
 class Job(db.Model):
     id = db.StringProperty()
-    # !!! do not believe we need this !!!
-    flyer_id = db.StringProperty()
     # references
     flyer = db.ReferenceProperty(Flyer, collection_name="jobs")
     email = db.ReferenceProperty(Email, collection_name="jobs")

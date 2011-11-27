@@ -13,6 +13,7 @@ use_library('django', '0.96')
 
 class Index(BaseHandler):
     def get(self):
+        # ??? find some way to pull this out to a settings file?
         values = {"affiliation":"Columbia University"}
         self.response.out.write(template.render("templates/index.html", values))
 
@@ -47,8 +48,7 @@ class Upload(BaseHandler):
             email_obj.id = str(email_obj.key().id())
             email_obj.put()
 
-            job = Job(flyer_id=flyer.id, email=email_obj, msg=msg, count=5,
-                      state="init", flyer=flyer)
+            job = Job(flyer=flyer, email=email_obj, flyer=flyer, done = False, state=0)
             job.put()
 
         self.response.out.write(template.render("templates/finish.html", {}))
@@ -76,15 +76,17 @@ class Done(BaseHandler):
 
         q = Job.all()
         q.filter("email =", e)
-        q.filter("flyer_id =", flyer_id)
+        q.filter("flyer =", flyer_id) # ??? does this work?
         job = q.get()
         if job:
-            job.state = "done"
+            job.state = 2 # !!! should pull out to a CONSTANT
             job.put()
             self.response.out.write(template.render("templates/finish.html", {}))
         else:
             self.error(404)
 
+# !!! stop has to handle /stop/email/club, /stop/email
+# !!! check email.html
 class Stop(BaseHandler):
     def get(self, email):
         q = Job.all()
@@ -109,5 +111,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

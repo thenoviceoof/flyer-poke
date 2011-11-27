@@ -2,10 +2,26 @@ Hey there! Have you finished flyering?
 
 {% for job in jobs %}
 <div style="margin:1em;padding:1em;border:3px gray solid;border-radius:0.5em;">
-  <h1 style="margin:2px;font-size:16pt;">{{ job.flyer.name }}</h1>
-  <a href="{{domain}}/pdf/{{ job.flyer_id }}">Download the flyer</a><br/><br/>
-  <a href="{{domain}}/done/{{ job.flyer_id }}/{{ job.email.id }}"><button>I'm done with this flyer</button></a>
+  <h1 style="margin:2px;font-size:16pt;">
+    {{ job.flyer.name }}
+  </h1>
+  <h2 style="font-size:14pt;color:gray;">
+    for {{ job.flyer.club.name }}
+  </h2>
+  <a href="{{ domain }}/pdf/{{ job.email.id }}/{{ job.flyer_id }}">
+    Download the flyer
+  </a><br/><br/>
+  <a href="{{ domain }}/done/{{ job.email.id }}/{{ job.flyer_id }}">
+    <button>I'm done with this flyer</button>
+  </a>
+  <a href="{{ domain }}/stop/{{ job.email.id }}/{{ job.flyer.club.name }}"
+     style="color:gray;">
+    Wait! I'm not part of this club!
+  </a>
 </div>
 {% endfor %}
 
-If you have no idea what this is, <a href="{{domain}}/stop/{{ email }}">just click here, and we'll stop bothering you</a>
+<p>If you have no idea what this is all about, 
+<a href="{{ domain }}/stop/{{ email }}">just click here, and we'll stop
+bothering you</a>
+</p>

@@ -19,7 +19,7 @@
       <tr>
 	<td>{{ flyer.id }}</td>
 	<td>{{ flyer.name }}</td>
-	<td>{{ flyer.date }}</td>
+	<td>{{ flyer.last_sent_date }}</td>
       </tr>
       {% endfor %}
     </table>
@@ -39,7 +39,6 @@
 	<td>{{ job.flyer.name }}</td>
 	<td>{{ job.email.id }}</td>
 	<td>{{ job.email.email }}</td>
-	<td>{{ job.msg }}</td>
       </tr>
       {% endfor %}
     </table>

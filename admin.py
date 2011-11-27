@@ -65,33 +65,38 @@ class Email(BaseHandler):
                 logging.error(message)
         self.response.out.write("Sent emails")
 
+# clean out the old jobs (month (31 days) or older)
 class Clean(BaseHandler):
     def get(self):
-        # clean out the old jobs
         t = list(time.localtime())
-        t[2] -= 7
+        t[2] -= 31
         dt = datetime.datetime.fromtimestamp(time.mktime(t))
 
         jobs = Job.all()
         jobs.filter("date <", dt)
-        jobs = jobs.fetch(BOUND)
+        jobs = jobs.fetch()
         for job in jobs:
             job.delete()
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed old ones"}))
 
+# !!! deactivate this sooner or later
 class Purge(BaseHandler):
     def get(self):
         # clean out the old pdfs
-        jobs = Job.all().fetch(BOUND)
+        jobs = Job.all().fetch()
         for job in jobs:
             job.delete()
-        flyers = Flyer.all().fetch(BOUND)
+        flyers = Flyer.all().fetch()
         for flyer in flyers:
             flyer.delete()
+        emails = Email.all().fetch()
+        for email in emails:
+            email.delete()
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed everything"}))
 
+# ??? perhaps not necessary: 
 class List(BaseHandler):
     def get(self):
         flyerq = Flyer.all()
