@@ -11,5 +11,8 @@ handlers:
 - url: /static
   static_dir: static
 
+- url: /callback
+  script: WIND_auth.py
+
 - url: /.*
   script: flyer.py

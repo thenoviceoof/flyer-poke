@@ -9,4 +9,4 @@ class BaseHandler(webapp.RequestHandler):
     super(BaseHandler, self).error(code)
     if code == 404:
         self.response.out.write(template.render("templates/404.html", {}))
-      # Output 404 page
+    # otherwise, let it slide

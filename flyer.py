@@ -15,8 +15,17 @@ class Index(BaseHandler):
     def get(self):
         # ??? find some way to pull this out to a settings file?
         values = {"affiliation":"Columbia University"}
+        # redirect to 
         self.response.out.write(template.render("templates/index.html", values))
 
+# choose which organization to flyer for
+class Org(BaseHandler):
+    def get(self):
+        values = {}
+        self.response.out.write(template.render("templates/upload.html", values))
+
+# upload page
+# !!! no reason this has to be post
 class Prep(BaseHandler):
     def get(self):
         self.post()
@@ -24,6 +33,7 @@ class Prep(BaseHandler):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
 
+# upload handler
 class Upload(BaseHandler):
     def post(self):
         flyer = Flyer()
@@ -88,9 +98,10 @@ class Done(BaseHandler):
 # !!! stop has to handle /stop/email/club, /stop/email
 # !!! check email.html
 class Stop(BaseHandler):
-    def get(self, email):
+    def get(self, email_id):
+        email = Email.get(email_id)
         q = Job.all()
-        q.filter("email =", urllib.unquote(email))
+        q.filter("email =", email)
         jobs = q.fetch(BOUND)
         for job in jobs:
             job.delete()
