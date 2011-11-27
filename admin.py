@@ -21,8 +21,29 @@ BOUND = 1000
 class Email(BaseHandler):
     def get(self):
         jobq = Job.all()
-        jobs = list(jobq.fetch(BOUND))
+        # get both init and downloaded states
+        jobs = list(jobq.filter("done =", False))
+        # update the flyer list
+        flyers = 
         emails = set([j.email for j in jobs])
+
+        if len(emails) > BOUND:
+            # figure out which emails to include b/c they're new
+            init_flyers = [j.flyer for j in jobs if not(j.flyer.last_sent_date)]
+            init_jobs = [j for j in jobs if not(j.flyer.last_sent_date)]
+            emails = set([j.email for for j in init_jobs])
+            if len(emails) > BOUND:
+            # and now calculate on the other emails
+            flyers = [j.flyer for j in jobs if j.flyer.last_sent_date]
+            # as of now, use a simple longest w/o update first
+            flyers = sorted(flyers, key=attrgetter('last_sent_date'))
+            for flyer in flyers:
+                tmp_email = set([j.email for j in flyer.jobs])
+                if len(emails.union(tmp_email)) > BOUND:
+                    break
+                emails = emails.union(tmp_email)
+
+        # email sending pre-computation
         domain = "http://%s.appspot.com" % get_application_id()
         fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
         date = time.strftime("%Y/%m/%d")

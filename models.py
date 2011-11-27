@@ -47,6 +47,8 @@ class Job(db.Model):
     # references
     flyer = db.ReferenceProperty(Flyer, collection_name="jobs")
     email = db.ReferenceProperty(Email, collection_name="jobs")
-    # tracking fields
-    state = db.StringProperty() # init, downloaded, done, error
+    # for selecting jobs not yet done
+    done = db.BooleanProperty()
+    # reporting: init (0), downloaded (1), done (2), error (-1)
+    state = db.IntegerProperty()
     last_updated = db.DateTimeProperty(auto_now_add=True)
