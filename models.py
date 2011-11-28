@@ -9,16 +9,21 @@ class Club(db.Model):
     name = db.StringProperty()
 
 # token: unique identifier linked to clubs (OpenID or WIND)
-class Token2Club(db.Model):
+class Token(db.Model):
     token = db.StringProperty()
-    club = db.ReferenceProperty(Club)
     # a google user, to request push rights to clubs
     user = db.UserProperty()
 
 # many-to-many
+class Token2Club(db.Model):
+    token = db.ReferenceProperty(Club, required=True, collection_name="tokens")
+    club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
+
 class Email2Club(db.Model):
     email = db.ReferenceProperty(Email, required=True, collection_name="emails")
     club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
+    # !!! how can we use this?
+    enable = db.BooleanProperty(default=True)
 
 ################################################################################
 # Flyer-sending-related models
@@ -26,6 +31,7 @@ class Email2Club(db.Model):
 class Email(db.Model):
     id = db.StringProperty()
     email = db.StringProperty()
+    enable = db.BooleanProperty(default=True)
 
 class Flyer(db.Model):
     id = db.StringProperty()

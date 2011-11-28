@@ -3,33 +3,37 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from models import Flyer, Job, Email
-from lib import BaseHandler
+from models import Flyer, Job, Email, Token, Club
+from lib import *
 import logging
-import urllib
+from gaesessions import get_current_session
 
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
+# either front page or choose organization
 class Index(BaseHandler):
     def get(self):
-        # ??? find some way to pull this out to a settings file?
-        values = {"affiliation":"Columbia University"}
-        # redirect to 
-        self.response.out.write(template.render("templates/index.html", values))
-
-# choose which organization to flyer for
-class Org(BaseHandler):
-    def get(self):
-        values = {}
-        self.response.out.write(template.render("templates/upload.html", values))
+        # grab relevant orgs
+        session = get_current_session()
+        if session.is_active():
+            token = session["user"]
+            token_user = Token.get(token)
+            clubs = token_user.clubs
+            if len(clubs) == 1:
+                self.redirect("/flyer/{0}".format(clubs[0].name))
+            values = {"clubs": clubs}
+            self.response.out.write(template.render("templates/orgs.html",
+                                                    values))
+        else:
+            # ??? find some way to pull this out to a settings file?
+            values = {"affiliation":"Columbia University"}
+            self.response.out.write(template.render("templates/index.html",
+                                                    values))
 
 # upload page
-# !!! no reason this has to be post
-class Prep(BaseHandler):
+class Flyer(BaseHandler):
     def get(self):
-        self.post()
-    def post(self):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
 
@@ -58,46 +62,78 @@ class Upload(BaseHandler):
             email_obj.id = str(email_obj.key().id())
             email_obj.put()
 
-            job = Job(flyer=flyer, email=email_obj, flyer=flyer, done = False, state=0)
+            job = Job(flyer=flyer, email=email_obj, flyer=flyer, done = False,
+                      state=INIT)
             job.put()
 
         self.response.out.write(template.render("templates/finish.html", {}))
 
+# allow anon downloads (?)
 class Pdf(BaseHandler):
-    def get(self, id):
-        flyers = db.GqlQuery("SELECT * "
-                             "FROM Flyer "
-                             "WHERE id=:1",
-                             id)
-        flyer = flyers.get()
+    def get(self, flyer_id):
+        flyer = Flyer.get(flyer_id)
 
         if flyer.flyer:
             self.response.headers['Content-Type'] = "application/pdf"
-            self.response.headers['Content-Disposition'] = "attachment; filename=%s.pdf" % flyer.name
+            self.response.headers['Content-Disposition'] = \
+                "attachment; filename=%s.pdf" % flyer.name
+            self.response.out.write(flyer.flyer)
+        else:
+            self.error(404)
+
+# track downloads
+class PdfPersonal(BaseHandler):
+    def get(self, flyer_id, email_id):
+        flyer = Flyer.get(flyer_id)
+        email = Email.get(email_id)
+        job = Job.all().filter("flyer =", flyer).filter("email = ", email).get()
+
+        if flyer.flyer:
+            job.state = DOWNLOADED
+            job.put()
+            self.response.headers['Content-Type'] = "application/pdf"
+            self.response.headers['Content-Disposition'] = \
+                "attachment; filename=%s.pdf" % flyer.name
             self.response.out.write(flyer.flyer)
         else:
             self.error(404)
 
 class Done(BaseHandler):
-    def get(self, flyer_id, email):
-        emailq = Email.all()
-        emailq.filter("id =", email)
-        e = emailq.get()
+    def get(self, flyer_id, email_id):
+        flyer = Flyer.get(flyer_id)
+        email = Email.get(email_id)
 
         q = Job.all()
-        q.filter("email =", e)
-        q.filter("flyer =", flyer_id) # ??? does this work?
+        q.filter("email =", email)
+        q.filter("flyer =", flyer)
         job = q.get()
         if job:
-            job.state = 2 # !!! should pull out to a CONSTANT
+            job.state = DONE
             job.put()
             self.response.out.write(template.render("templates/finish.html", {}))
         else:
             self.error(404)
 
-# !!! stop has to handle /stop/email/club, /stop/email
-# !!! check email.html
-class Stop(BaseHandler):
+# !!!
+class ClubEdit(BaseHandler):
+    # getting the editor
+    def get(self):
+        pass
+    # editing the club
+    def post(self):
+        pass
+
+class StopClub(BaseHandler):
+    def get(self, email_id):
+        email = Email.get(email_id)
+        q = Job.all()
+        q.filter("email =", email)
+        jobs = q.fetch(BOUND)
+        for job in jobs:
+            job.delete()
+        self.response.out.write(template.render("templates/sorry.html", {}))
+
+class StopAll(BaseHandler):
     def get(self, email_id):
         email = Email.get(email_id)
         q = Job.all()
@@ -108,9 +144,10 @@ class Stop(BaseHandler):
         self.response.out.write(template.render("templates/sorry.html", {}))
 
 application = webapp.WSGIApplication(
+    # !!! out of sync, fix
     [('/', Index),
-     ('/flyer', Prep),
-     ('/upload', Upload),
+     ('/flyer/(.*)', Flyer),
+     ('/upload/(.*)', Upload),
      ('/pdf/(\d*)', Pdf),
      ('/done/(\d*)/(.*)', Done),
      ('/stop/(.*)', Stop),

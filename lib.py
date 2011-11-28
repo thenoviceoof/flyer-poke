@@ -10,3 +10,9 @@ class BaseHandler(webapp.RequestHandler):
     if code == 404:
         self.response.out.write(template.render("templates/404.html", {}))
     # otherwise, let it slide
+
+# useful constants
+ERROR = -1
+INIT = 0
+DOWNLOADED = 1
+DONE = 2

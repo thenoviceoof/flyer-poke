@@ -10,7 +10,7 @@ import datetime, time
 import logging
 
 from models import Flyer, Job
-from lib import BaseHandler
+from lib import *
 
 from google.appengine.dist import use_library
 use_library('django', '0.96')
@@ -80,37 +80,9 @@ class Clean(BaseHandler):
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed old ones"}))
 
-# !!! deactivate this sooner or later
-class Purge(BaseHandler):
-    def get(self):
-        # clean out the old pdfs
-        jobs = Job.all().fetch()
-        for job in jobs:
-            job.delete()
-        flyers = Flyer.all().fetch()
-        for flyer in flyers:
-            flyer.delete()
-        emails = Email.all().fetch()
-        for email in emails:
-            email.delete()
-        self.response.out.write(template.render("templates/task.html",
-                                                {"msg": "Removed everything"}))
-
-# ??? perhaps not necessary: 
-class List(BaseHandler):
-    def get(self):
-        flyerq = Flyer.all()
-        flyers = flyerq.fetch(BOUND)
-        jobs = Job.all().fetch(BOUND)
-
-        values = {"flyers":flyers, "jobs": jobs}
-        self.response.out.write(template.render("templates/list.html", values))
-
 application = webapp.WSGIApplication(
     [('/tasks/email', Email),
      ('/tasks/clean', Clean),
-     ('/tasks/purge', Purge),
-     ('/tasks/list', List),
      ],
     debug=True)
 
