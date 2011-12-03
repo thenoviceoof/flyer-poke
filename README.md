@@ -18,6 +18,9 @@ TODO
 ================================================================================
  * see github issues tracker
 
+ - http://blog.notdot.net/2010/01/ReferenceProperty-prefetching-in-App-Engine
+ - http://code.google.com/appengine/docs/python/blobstore/overview.html
+
 INSTALL
 ================================================================================
  * 

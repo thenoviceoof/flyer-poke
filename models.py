@@ -22,8 +22,6 @@ class Token2Club(db.Model):
 class Email2Club(db.Model):
     email = db.ReferenceProperty(Email, required=True, collection_name="emails")
     club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
-    # !!! how can we use this?
-    enable = db.BooleanProperty(default=True)
 
 ################################################################################
 # Flyer-sending-related models

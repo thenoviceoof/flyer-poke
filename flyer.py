@@ -31,14 +31,12 @@ class Index(BaseHandler):
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
-# upload page
+# upload flyer
 class Flyer(BaseHandler):
     def get(self):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
 
-# upload handler
-class Upload(BaseHandler):
     def post(self):
         flyer = Flyer()
         pdf = self.request.get("flyer")
@@ -110,18 +108,43 @@ class Done(BaseHandler):
         if job:
             job.state = DONE
             job.put()
-            self.response.out.write(template.render("templates/finish.html", {}))
+            self.response.out.write(template.render("templates/finish.html",
+                                                    {}))
         else:
             self.error(404)
 
-# !!!
 class ClubEdit(BaseHandler):
-    # getting the editor
-    def get(self):
-        pass
-    # editing the club
-    def post(self):
-        pass
+    def get(self, club):
+        # getting the editor
+        club = Club.get(club)
+        emails = str(list(club.emails))
+        vals = {"emails": emails}
+        self.response.out.write(template.render("templates/club_edit.html",
+                                                vals))
+
+    # !!!
+    def post(self, club):
+        # editing the club
+        email_list = self.request.get("email_list")
+        club = Club.get(club)
+        emails = email_list.split(",")
+        cur_emails = [e.email for e in club.emails.fetch(100)]
+        add_emails = [e for e in emails if not(e in cur_emails)]
+        rem_emails = [e for e in cur_emails if not(e in emails)]
+        # accumulate var
+        email_rels = []
+        for email_addr in add_emails:
+            email = Email.get_or_insert(email_addr)
+            email_rel = Email2Club(email = email, club = club)
+            email_rels.append(email_rel)
+        db.put(email_rels)
+        for email_addr in rem_emails:
+            
+        # create message
+        vals = {"emails":"###",
+                "message":"Created successfully"}
+        self.response.out.write(template.render("templates/club_edit.html",
+                                                vals))
 
 class StopClub(BaseHandler):
     def get(self, email_id):
@@ -144,13 +167,14 @@ class StopAll(BaseHandler):
         self.response.out.write(template.render("templates/sorry.html", {}))
 
 application = webapp.WSGIApplication(
-    # !!! out of sync, fix
-    [('/', Index),
-     ('/flyer/(.*)', Flyer),
-     ('/upload/(.*)', Upload),
-     ('/pdf/(\d*)', Pdf),
-     ('/done/(\d*)/(.*)', Done),
-     ('/stop/(.*)', Stop),
+    [('/', Index), # both front and orgs list
+     ('/org/(.*)'), # club edit
+     ('/flyer/(.*)', Flyer), # flyer upload (get/post)
+     ('/pdf/(\d*)', Pdf), # get flyer
+     ('/pdf/(\d*)/(\d*)', PersonalPdf), # get flyer for certain person
+     ('/done/(\d*)/(.*)', Done), 
+     ('/stop/(.*)/(.*)', StopClub), # stop email from a club
+     ('/stop/(.*)', StopAll), # stop all traffic to email
      ],
     debug=True)
 
