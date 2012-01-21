@@ -2,6 +2,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.api import users
 
 from models import Flyer, Job, Email, Token, Club
 from lib import *
@@ -16,37 +17,46 @@ from config import AFFILIATION
 # either front page or choose organization
 class Index(BaseHandler):
     def get(self):
-        # grab relevant orgs
         session = get_current_session()
         if session.is_active():
+            # serve up the club list for the user
             token = session["user"]
             token_user = Token.get(token)
             clubs = token_user.clubs
-            if len(clubs) == 1:
-                self.redirect("/flyer/{0}".format(clubs[0].name))
             values = {"clubs": clubs}
             self.response.out.write(template.render("templates/orgs.html",
                                                     values))
         else:
-            # ??? find some way to pull this out to a settings file?
+            # find out if signed in to google account
+            user = users.get_current_user()
+            if user:
+                # !! find out if the user is in the db or not
+                # !! if so, log the user in, reroute them back to "/"
+                pass
+            # otherwise, just display the frontpage
             values = {"affiliation":AFFILIATION}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
 # upload flyer
 class Flyer(BaseHandler):
+    # serves up the flyer upload form
     def get(self):
         values = {}
         self.response.out.write(template.render("templates/upload.html", values))
 
+    # handles the flyer upload
     def post(self):
         flyer = Flyer()
         pdf = self.request.get("flyer")
+        # !!! check if the file is a pdf
         flyer.flyer = db.Blob(pdf)
         flyer.name = self.request.get("name")
         flyer.put()
         flyer.id = str(flyer.key().id())
         flyer.put()
+
+        # !!! makes jobs from the club's email list
 
         recipients = self.request.get("content")
         lines = [r.split(" ") for r in recipients.strip().split("\n")
@@ -68,21 +78,8 @@ class Flyer(BaseHandler):
 
         self.response.out.write(template.render("templates/finish.html", {}))
 
-# allow anon downloads (?)
-class Pdf(BaseHandler):
-    def get(self, flyer_id):
-        flyer = Flyer.get(flyer_id)
-
-        if flyer.flyer:
-            self.response.headers['Content-Type'] = "application/pdf"
-            self.response.headers['Content-Disposition'] = \
-                "attachment; filename=%s.pdf" % flyer.name
-            self.response.out.write(flyer.flyer)
-        else:
-            self.error(404)
-
-# track downloads
-class PdfPersonal(BaseHandler):
+class Download(BaseHandler):
+    # don't allow "anon" downloads
     def get(self, flyer_id, email_id):
         flyer = Flyer.get(flyer_id)
         email = Email.get(email_id)
@@ -99,6 +96,7 @@ class PdfPersonal(BaseHandler):
             self.error(404)
 
 class Done(BaseHandler):
+    # means user is done
     def get(self, flyer_id, email_id):
         flyer = Flyer.get(flyer_id)
         email = Email.get(email_id)
@@ -115,6 +113,12 @@ class Done(BaseHandler):
         else:
             self.error(404)
 
+class ClubNew(BaseHandler):
+    def post(self):
+        # !!! except club name from index
+        # !!! make a club, redirect to clubedit
+        self.redirect("/")
+
 class ClubEdit(BaseHandler):
     def get(self, club):
         # getting the editor
@@ -124,8 +128,8 @@ class ClubEdit(BaseHandler):
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
-    # !!!
     def post(self, club):
+        # !!! have to have: adding, removing, updating
         # editing the club
         email_list = self.request.get("email_list")
         club = Club.get(club)
@@ -148,7 +152,14 @@ class ClubEdit(BaseHandler):
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
-class StopClub(BaseHandler):
+class AttachGoogleAccount(BaseHandler):
+    # for allowing expedient usage: auto-sign in users
+    def get(self):
+        # !!!
+        self.redirect("/")
+    
+class StopClubMail(BaseHandler):
+    # !!! have to add a club_id
     def get(self, email_id):
         email = Email.get(email_id)
         q = Job.all()
@@ -158,8 +169,9 @@ class StopClub(BaseHandler):
             job.delete()
         self.response.out.write(template.render("templates/sorry.html", {}))
 
-class StopAll(BaseHandler):
+class StopAllMail(BaseHandler):
     def get(self, email_id):
+        # !!! have to delete jobs, set user to no 
         email = Email.get(email_id)
         q = Job.all()
         q.filter("email =", email)
@@ -170,13 +182,13 @@ class StopAll(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
-     ('/org/(.*)'), # club edit
+     ('/new-club', ClubNew), # new club
+     ('/club/(.*)', ClubEdit), # club edit
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)
-     ('/pdf/(\d*)', Pdf), # get flyer
-     ('/pdf/(\d*)/(\d*)', PersonalPdf), # get flyer for certain person
+     ('/pdf/(\d*)/(\d*)', Download), # get flyer for certain person
      ('/done/(\d*)/(.*)', Done), 
-     ('/stop/(.*)/(.*)', StopClub), # stop email from a club
-     ('/stop/(.*)', StopAll), # stop all traffic to email
+     ('/stop/(.*)/(.*)', StopClubMail), # stop email from a club
+     ('/stop/(.*)', StopAllMail), # stop all traffic to email
      ],
     debug=True)
 
