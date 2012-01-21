@@ -41,7 +41,6 @@ class Email(db.Model):
     enable = db.BooleanProperty(default=True)
 
 class Flyer(db.Model):
-    id = db.StringProperty()
     # a flyer belongs to only one club
     club = db.ReferenceProperty(Club)
     # human-readable handle - used in nag emails
@@ -63,8 +62,8 @@ class Job(db.Model):
     flyer = db.ReferenceProperty(Flyer, collection_name="jobs")
     email = db.ReferenceProperty(Email, collection_name="jobs")
     # current job renewal
-    renewal = db.IntegerProperty()
+    renewal = db.IntegerProperty(default=0)
     # reporting: init (0), downloaded (1), done (2), error (-1)
-    # however, error is never used
-    state = db.IntegerProperty()
+    # however, error is never used?
+    state = db.IntegerProperty(default=0)
     last_updated = db.DateTimeProperty(auto_now_add=True)

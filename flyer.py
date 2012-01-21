@@ -6,7 +6,10 @@ from google.appengine.api import users
 
 from models import Flyer, Job, Email, Token, Club
 from lib import *
+import hashlib
+import time
 import logging
+
 from gaesessions import get_current_session
 
 from google.appengine.dist import use_library
@@ -38,44 +41,52 @@ class Index(BaseHandler):
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
+def generate_hash(base):
+    seed = base + str(time.time())
+    md5 = hashlib.md5()
+    md5.update(seed)
+    return md5.hexdigest()
+
 # upload flyer
 class Flyer(BaseHandler):
     # serves up the flyer upload form
-    def get(self):
-        values = {}
+    def get(self, club_id):
+        club = Club.get(club_id)
+
+        values = {"name": club.name}
         self.response.out.write(template.render("templates/upload.html", values))
 
     # handles the flyer upload
-    def post(self):
-        flyer = Flyer()
+    def post(self, club_id):
+        # get the club
+        club = Club.get(club_id)
+
+        # make a flyer
+        flyer = None
+        while not(flyer):
+            # randomly generate a flyer key
+            # ?? should we do this? don't want to leak insert times
+            flyer_key = generate_hash(club_id)[:5]
+            flyer = Flyer.get_or_insert(flyer_key)
+            if flyer.name:
+                flyer = None
+        name = self.request.get("name")
+        # check if the filename is a pdf
+        if name[-3:] != "pdf":
+            # !!! replace this with something more useful
+            raise Exception("File must be a PDF")
+        flyer.name = name
         pdf = self.request.get("flyer")
-        # !!! check if the file is a pdf
         flyer.flyer = db.Blob(pdf)
-        flyer.name = self.request.get("name")
-        flyer.put()
-        flyer.id = str(flyer.key().id())
         flyer.put()
 
-        # !!! makes jobs from the club's email list
-
-        recipients = self.request.get("content")
-        lines = [r.split(" ") for r in recipients.strip().split("\n")
-                 if len(r)>0]
-        for line in lines:
-            log = logging.getLogger(__name__)
-            log.info(line)
-            email = line[0]
-            msg = " ".join(line[1:])
-
-            email_obj = Email(email=str(email))
-            email_obj.put()
-            email_obj.id = str(email_obj.key().id())
-            email_obj.put()
-
-            job = Job(flyer=flyer, email=email_obj, flyer=flyer, done = False,
+        # make a bunch of jobs from the club and flyer
+        for email in club.emails:
+            job = Job(flyer=flyer, email=email, done = False,
                       state=INIT)
             job.put()
 
+        # and write out the response
         self.response.out.write(template.render("templates/finish.html", {}))
 
 class Download(BaseHandler):
@@ -83,11 +94,15 @@ class Download(BaseHandler):
     def get(self, flyer_id, email_id):
         flyer = Flyer.get(flyer_id)
         email = Email.get(email_id)
-        job = Job.all().filter("flyer =", flyer).filter("email = ", email).get()
+        q = Job.all()
+        q.filter("email =", email)
+        q.filter("flyer =", flyer)
+        job = q.get()
 
         if flyer.flyer:
-            job.state = DOWNLOADED
-            job.put()
+            if job.state < DOWNLOADED:
+                job.state = DOWNLOADED
+                job.put()
             self.response.headers['Content-Type'] = "application/pdf"
             self.response.headers['Content-Disposition'] = \
                 "attachment; filename=%s.pdf" % flyer.name
@@ -131,6 +146,23 @@ class ClubEdit(BaseHandler):
     def post(self, club):
         # !!! have to have: adding, removing, updating
         # editing the club
+
+        # !!! copied code
+        recipients = self.request.get("content")
+        lines = [r.split(" ") for r in recipients.strip().split("\n")
+                 if len(r)>0]
+        for line in lines:
+            log = logging.getLogger(__name__)
+            log.info(line)
+            email = line[0]
+            msg = " ".join(line[1:])
+
+            email_obj = Email(email=str(email))
+            email_obj.put()
+            email_obj.id = str(email_obj.key().id())
+            email_obj.put()
+        # !!! end copied code
+
         email_list = self.request.get("email_list")
         club = Club.get(club)
         emails = email_list.split(",")
