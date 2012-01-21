@@ -15,6 +15,8 @@ from lib import *
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
+# !!! this doesn't work any more, remove this particular thing
+# !!! might not matter after 
 # upper bound on number of API calls
 BOUND = 1000
 
@@ -27,6 +29,7 @@ class Email(BaseHandler):
         flyers = 
         emails = set([j.email for j in jobs])
 
+        # ??? leave this in place?
         if len(emails) > BOUND:
             # figure out which emails to include b/c they're new
             init_flyers = [j.flyer for j in jobs if not(j.flyer.last_sent_date)]
@@ -65,6 +68,7 @@ class Email(BaseHandler):
                 logging.error(message)
         self.response.out.write("Sent emails")
 
+# !!! semesterly cleaning
 # clean out the old jobs (month (31 days) or older)
 class Clean(BaseHandler):
     def get(self):
@@ -79,6 +83,11 @@ class Clean(BaseHandler):
             job.delete()
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed old ones"}))
+
+# !!! new orgs, bandwidth/email usage
+class SendAdminNotifications(BaseHandler):
+    def get(self):
+        pass
 
 application = webapp.WSGIApplication(
     [('/tasks/email', Email),
