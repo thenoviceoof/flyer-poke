@@ -7,6 +7,8 @@ from google.appengine.api import users
 # key replicates name, but as a slug (letters/numbers only)
 class Club(db.Model):
     name = db.StringProperty()
+    # url-friendly name
+    slug = db.StringProperty()
     # for a cron job that emails the super-admin new clubs
     new  = db.BooleanProperty()
 
@@ -25,6 +27,8 @@ class Token2Club(db.Model):
 class Email2Club(db.Model):
     email = db.ReferenceProperty(Email, required=True, collection_name="emails")
     club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
+    # message attached to emails: for instance, flyering locations
+    message = db.StringProperty()
     # switch to disable abuse/spam from different clubs
     enable = db.BooleanProperty(default=True)
 
