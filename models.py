@@ -44,6 +44,8 @@ class Flyer(db.Model):
     name = db.StringProperty()
     # !!! change to blobstore, possibly in branch
     flyer = db.BlobProperty()
+    # count how many times the jobs have been renewed (aka monday)
+    renewal = db.IntegerProperty()
     # timestamps
     upload_date = db.DateTimeProperty(auto_now_add=True)
     last_sent_date = db.DateTimeProperty()
@@ -56,8 +58,9 @@ class Job(db.Model):
     # references
     flyer = db.ReferenceProperty(Flyer, collection_name="jobs")
     email = db.ReferenceProperty(Email, collection_name="jobs")
-    # for selecting jobs not yet done
-    done = db.BooleanProperty()
+    # current job renewal
+    renewal = db.IntegerProperty()
     # reporting: init (0), downloaded (1), done (2), error (-1)
+    # however, error is never used
     state = db.IntegerProperty()
     last_updated = db.DateTimeProperty(auto_now_add=True)
