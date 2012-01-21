@@ -1,0 +1,6 @@
+# Various configuration options
+
+AFFILIATION = ""
+
+# day of the week
+RENEW_DATE = "Monday"

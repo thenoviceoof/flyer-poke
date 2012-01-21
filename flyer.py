@@ -11,6 +11,8 @@ from gaesessions import get_current_session
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
+from config import AFFILIATION
+
 # either front page or choose organization
 class Index(BaseHandler):
     def get(self):
@@ -27,7 +29,7 @@ class Index(BaseHandler):
                                                     values))
         else:
             # ??? find some way to pull this out to a settings file?
-            values = {"affiliation":"Columbia University"}
+            values = {"affiliation":AFFILIATION}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
