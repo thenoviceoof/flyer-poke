@@ -18,7 +18,7 @@ use_library('django', '0.96')
 # other pieces to import
 from models import Flyer, Job, Email, Token, Club
 from lib import *
-from config import AFFILIATION, SIGNIN_TEXT
+from config import AFFILIATION, SIGNIN_TEXT, DEBUG
 
 ################################################################################
 
@@ -236,7 +236,7 @@ application = webapp.WSGIApplication(
      ('/stop/(.*)/(.*)', StopClubMail), # stop email from a club
      ('/stop/(.*)', StopAllMail), # stop all traffic to email
      ],
-    debug=True)
+    debug=DEBUG)
 
 def main():
     run_wsgi_app(application)

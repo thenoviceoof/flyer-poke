@@ -1,0 +1,67 @@
+{% extends "master.html" %}
+
+{% block title %}Organizations{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/css/list.css" />
+{% endblock %}
+
+{% block content %}
+<header>
+  <a href="/">
+    <img id="logo" src="/static/img/logo_small.png">
+    <h1 id="title">Organizations</h1>
+  </a>
+  <a id="logout" href="/logout">Logout</a>
+</header>
+
+<div id="notifications">
+{% for note in notifications %}
+<div class="notification">
+  <span class="notification-title">{{ note.title }}</span>
+  {{ note.contents }}
+</div>
+{% endfor %}
+</div>
+
+<div id="orglist">
+  {% for club in clubs %}
+  <div class="madeclub club">
+    <h2>{{ club.name }}</h2>
+    <a href="/flyer/{{ club.slug }}"><span></span></a>
+  </div>
+  {% endfor %}
+  {% if clubs %}
+  <h2 id="noclub">oops, no clubs yet!</h2>
+  {% endif %}
+
+  <div id="newwrapper">
+    <div id="addnew" class="club">
+      <h2>Make New Club</h2>
+    </div>
+    <form id="newclubform" method="post" action="/new-club">
+      <input type="text" name="name" id="clubname" />
+      <button>Make/Join Club</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+</script>
+<script type="text/javascript">
+  $("#addnew").click(function() {
+    $("#addnew").hide();
+    $("#newclubform").show();
+  });
+
+  $("#newclubform").submit(function(e) {
+    if(!$("#clubname").val()) {
+      alert("You need to enter a name");
+      e.preventdefault();
+      return false;
+    }
+  });
+</script>
+{% endblock %}

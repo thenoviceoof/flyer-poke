@@ -4,6 +4,7 @@
     <title>Floke - {% block title %}A Flyering notifier{% endblock %}</title>
 
     <link rel="stylesheet" href="/static/css/reset.css" />
+    <link rel="stylesheet" href="/static/css/overall.css" />
     {% block style %}
     <link rel="stylesheet" href="/static/css/front.css" />
     {% endblock %}
@@ -24,5 +25,7 @@
       {% endblock %}
     </div>
 
+    {% block scripts %}
+    {% endblock %}
   </body>
 </html>
