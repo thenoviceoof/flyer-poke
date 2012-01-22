@@ -7,6 +7,7 @@ from google.appengine.api.app_identity import get_application_id
 
 import hashlib
 import time
+import re
 import logging
 
 from gaesessions import get_current_session
@@ -17,8 +18,32 @@ use_library('django', '0.96')
 
 # other pieces to import
 from models import Flyer, Job, Email, Token, Club
+from models import TokenToClub, EmailToClub
 from lib import *
 from config import AFFILIATION, SIGNIN_TEXT, DEBUG
+
+################################################################################
+# utility fns
+
+def generate_hash(base):
+    seed = base + str(time.time())
+    md5 = hashlib.md5()
+    md5.update(seed)
+    return md5.hexdigest()
+
+def slugify(s):
+    return re.sub("\W",'', s).lower()
+
+def add_notify(title, body):
+    session = get_current_session()
+    cur = [{"title":title, "body": body}]
+    if session.is_active():
+        if session.get("notify", None):
+            session["notify"] = session["notify"] + cur
+        else:
+            session["notify"] = cur
+    else:
+        session["notify"] = cur
 
 ################################################################################
 
@@ -31,7 +56,8 @@ class Index(BaseHandler):
             token = session["user"]
             token_user = Token.get_by_key_name(token)
             clubs = token_user.clubs
-            values = {"clubs": clubs}
+            values = {"clubs": clubs, "notifications": session["notify"]}
+            session["notify"] = None
             self.response.out.write(template.render("templates/orgs.html",
                                                     values))
         else:
@@ -52,12 +78,6 @@ class Index(BaseHandler):
                       "contact_info": admin_contact}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
-
-def generate_hash(base):
-    seed = base + str(time.time())
-    md5 = hashlib.md5()
-    md5.update(seed)
-    return md5.hexdigest()
 
 # upload flyer
 class Flyer(BaseHandler):
@@ -142,15 +162,48 @@ class Done(BaseHandler):
 
 class ClubNew(BaseHandler):
     def post(self):
-        # !!! except club name from index
-        # !!! make a club, redirect to clubedit
-        self.redirect("/")
+        # check there's someone signed in
+        session = get_current_session()
+        if session.is_active():
+            if not(session["user"]):
+                self.error(404)
+        else:
+            self.error(404)
+        clubname = self.request.get("name")
+        # basic sanity check
+        if not(clubname):
+            self.error(500)
+        # convert to slug
+        clubslug = slugify(clubname)
+        # basics of get_or_insert, with insertion
+        def txn(key_name):
+            made = False
+            entity = Club.get_by_key_name(key_name)
+            if entity is None:
+                entity = Club(key_name=key_name)
+                entity.put()
+                made = True
+            return (entity, made)
+        club, made = db.run_in_transaction(txn, clubslug)
+        if not(made):
+            # generate an error
+            add_notify("Error", "That particular name is taken. Sorry!")
+            self.redirect("/")
+            return
+        # make a club, add current user as person
+        club.name = clubname
+        club.put()
+        token = Token.get_or_insert(session["user"])
+        join = TokenToClub(token=token, club=club)
+        join.put()
+        club_url = "/club/%s" % clubslug
+        self.redirect(club_url)
 
 class ClubEdit(BaseHandler):
     def get(self, club):
         # getting the editor
-        club = Club.get(club)
-        emails = str(list(club.emails))
+        club = Club.get_by_key_name(club)
+        emails = list(club.emails)
         vals = {"emails": emails}
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
