@@ -54,7 +54,7 @@ INSTALL
  * git clone this guy from github
  * copy over config.py.template to config.py, configure appropriately
  * you'll need to make your own auth endpoint: copy the example of
-   WIND_auth.py, which presumes an oauth-like authentication
+   auth.py, which presumes an oauth-like authentication
    scheme. If you don't have one, then you can use openid or facebook
  * get a google account
  * make an appengine app, choose an appropriate subdomain

@@ -59,7 +59,7 @@ class Job(db.Model):
 
 # maps login tokens (admins) to clubs
 class Token2Club(db.Model):
-    token = db.ReferenceProperty(Club, required=True, collection_name="clubs")
+    token = db.ReferenceProperty(Token, required=True, collection_name="clubs")
     club = db.ReferenceProperty(Club, required=True, collection_name="tokens")
 
 # maps emails to clubs
