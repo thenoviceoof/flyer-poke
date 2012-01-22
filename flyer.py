@@ -24,7 +24,7 @@ class Index(BaseHandler):
         if session.is_active():
             # serve up the club list for the user
             token = session["user"]
-            token_user = Token.get(token)
+            token_user = Token.get_by_key_name(token)
             clubs = token_user.clubs
             values = {"clubs": clubs}
             self.response.out.write(template.render("templates/orgs.html",
@@ -33,9 +33,13 @@ class Index(BaseHandler):
             # find out if signed in to google account
             user = users.get_current_user()
             if user:
-                # !! find out if the user is in the db or not
-                # !! if so, log the user in, reroute them back to "/"
-                pass
+                # find out if the user is in the db or not
+                q = db.GqlQuery("SELECT * FROM Token WHERE user = :1", user)
+                user_token = q.get()
+                if user_token:
+                    # if so, log the user in, reroute them back to "/"
+                    session["user"] = user_token.key().name()
+                    self.redirect("/")
             # otherwise, just display the frontpage
             values = {"affiliation":AFFILIATION}
             self.response.out.write(template.render("templates/index.html",
