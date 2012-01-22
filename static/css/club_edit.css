@@ -1,0 +1,54 @@
+.email {
+    position:relative;
+    margin:1em;
+    padding:0.5em;
+    border:4px black solid;
+    border-radius:1em;
+}
+
+.email:nth-child(odd) {
+    border-color: #69A;
+    background-color: #9BD;
+}
+
+.email:nth-child(even) {
+    border-color: #B88;
+    background-color: #DA9;
+}
+
+#noemails {
+    margin:0.5em;
+    padding:0.5em;
+    background-color:#CCC;
+    opacity:0.6;
+    border-radius:0.5em;
+}
+
+#newwrapper {
+    margin-top:1em;
+    padding:1em;
+    font-family:sans-serif;
+    border-top:4px #555 solid;
+}
+
+#newmembers {
+    width:100%;
+    margin:1em auto;
+}
+
+#newmembers textarea {
+    display:block;
+    width:100%;
+    height:4em;
+    padding:0.5em;
+    font:1.2em sans-serif;
+}
+
+#newmembers button {
+    display:block;
+    width:60%;
+    margin:0 auto;
+    padding:0.5em;
+    font:1.2em sans-serif;
+    text-align:center;
+}

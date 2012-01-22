@@ -12,10 +12,10 @@
   {% for club in clubs %}
   <div class="madeclub club">
     <h2>{{ club.name }}</h2>
-    <a href="/flyer/{{ club.slug }}"><span></span></a>
+    <a href="/club/{{ club.slug }}"><span></span></a>
   </div>
   {% endfor %}
-  {% if clubs %}
+  {% if not clubs %}
   <h2 id="noclub">oops, no clubs yet!</h2>
   {% endif %}
 

@@ -1,0 +1,35 @@
+{% extends "authd_page.html" %}
+
+{% block title %}Edit Club: {{ club }}{% endblock %}
+{% block pagetitle %}Edit Club: {{ club }}{% endblock %}
+
+{% block pagestyle %}
+<link rel="stylesheet" href="/static/css/club_edit.css" />
+{% endblock %}
+
+{% block page %}
+<div id="emaillist">
+  {% for email in emails %}
+  <div class="email">
+    <h2>{{ email.email }}</h2>
+  </div>
+  {% endfor %}
+  {% if not emails %}
+  <h2 id="noemails">oops, no members yet! Add some below!</h2>
+  {% endif %}
+
+  <div id="newwrapper">
+    <h2>Add emails to the list</h2>
+    <p>Put one email address per line</p>
+    <form id="newmembers" method="post" action="/new-club">
+      <textarea name="newemails"></textarea>
+      <button>Add emails</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+</script>
+{% endblock %}

@@ -55,8 +55,11 @@ class Index(BaseHandler):
             # serve up the club list for the user
             token = session["user"]
             token_user = Token.get_by_key_name(token)
-            clubs = token_user.clubs
-            values = {"clubs": clubs, "notifications": session["notify"]}
+            clubrefs = token_user.clubs.fetch(20) # 20 chosen arbitrarily
+            clubs = [c.club
+                     for c in prefetch_refprop(clubrefs, TokenToClub.club)]
+            notifications = session.get("notify", None)
+            values = {"clubs": clubs, "notifications": notifications}
             session["notify"] = None
             self.response.out.write(template.render("templates/orgs.html",
                                                     values))
@@ -192,6 +195,7 @@ class ClubNew(BaseHandler):
             return
         # make a club, add current user as person
         club.name = clubname
+        club.slug = clubslug
         club.put()
         token = Token.get_or_insert(session["user"])
         join = TokenToClub(token=token, club=club)
@@ -204,7 +208,7 @@ class ClubEdit(BaseHandler):
         # getting the editor
         club = Club.get_by_key_name(club)
         emails = list(club.emails)
-        vals = {"emails": emails}
+        vals = {"emails": emails, "club": club.name}
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
@@ -213,7 +217,7 @@ class ClubEdit(BaseHandler):
         # editing the club
 
         # !!! copied code
-        recipients = self.request.get("content")
+        recipients = self.request.get("contents")
         lines = [r.split(" ") for r in recipients.strip().split("\n")
                  if len(r)>0]
         for line in lines:
