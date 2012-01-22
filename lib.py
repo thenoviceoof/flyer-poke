@@ -7,9 +7,9 @@ from google.appengine.api.app_identity import get_application_id
 class BaseHandler(webapp.RequestHandler):
     def error(self, code):
         super(BaseHandler, self).error(code)
-    if code == 404:
-        self.response.out.write(template.render("templates/404.html", {}))
-    # otherwise, let it slide
+        if code == 404:
+            self.response.out.write(template.render("templates/404.html", {}))
+        # otherwise, let it slide
 
 # http://blog.notdot.net/2010/01/ReferenceProperty-prefetching-in-App-Engine
 def prefetch_refprop(entities, prop):

@@ -18,20 +18,6 @@ class Token(db.Model):
     # a google user, to allow auto sign in
     user = db.UserProperty()
 
-# maps login tokens (admins) to clubs
-class Token2Club(db.Model):
-    token = db.ReferenceProperty(Club, required=True, collection_name="tokens")
-    club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
-
-# maps emails to clubs
-class Email2Club(db.Model):
-    email = db.ReferenceProperty(Email, required=True, collection_name="emails")
-    club = db.ReferenceProperty(Club, required=True, collection_name="clubs")
-    # message attached to emails: for instance, flyering locations
-    message = db.StringProperty()
-    # switch to disable abuse/spam from different clubs
-    enable = db.BooleanProperty(default=True)
-
 ################################################################################
 # Flyer-sending-related models
 
@@ -67,3 +53,20 @@ class Job(db.Model):
     # however, error is never used?
     state = db.IntegerProperty(default=0)
     last_updated = db.DateTimeProperty(auto_now_add=True)
+
+################################################################################
+# Mappings
+
+# maps login tokens (admins) to clubs
+class Token2Club(db.Model):
+    token = db.ReferenceProperty(Club, required=True, collection_name="clubs")
+    club = db.ReferenceProperty(Club, required=True, collection_name="tokens")
+
+# maps emails to clubs
+class Email2Club(db.Model):
+    email = db.ReferenceProperty(Email, required=True, collection_name="clubs")
+    club = db.ReferenceProperty(Club, required=True, collection_name="emails")
+    # message attached to emails: for instance, flyering locations
+    message = db.StringProperty()
+    # switch to disable abuse/spam from different clubs
+    enable = db.BooleanProperty(default=True)

@@ -181,6 +181,8 @@ class ClubEdit(BaseHandler):
             email_rels.append(email_rel)
         db.put(email_rels)
         for email_addr in rem_emails:
+            # !!!
+            pass
             
         # create message
         vals = {"emails":"###",
