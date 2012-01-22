@@ -260,19 +260,10 @@ class ClubEdit(BaseHandler):
         email_block = self.request.get("newemails")
         emails = [e for e in re.split("[\s\,\n]", email_block) if e]
         for email in emails:
-            # search for the email
-            query = Email.all()
-            query.filter('email = ', email)
-            email_obj = query.fetch(1)
-            # if there's not already an email_obj, create it
-            while not(email_obj):
-                email_key = generate_hash(email)[:6]
-                email_obj, made = get_or_make(Email, email_key)
-                if not(made):
-                    email_obj = None
-                else:
-                    email_obj.email = email
-                    email_obj.put()
+            # don't use hashes for emails, never access anyways
+            email_obj = Email.get_or_insert(email)
+            if not(email_obj.email):
+                email_obj.email = email
             # make sure this pair is unique
             query = EmailToClub.all()
             query.filter('email =', email_obj)
