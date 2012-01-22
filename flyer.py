@@ -45,6 +45,37 @@ def add_notify(title, body):
     else:
         session["notify"] = cur
 
+def get_or_make(Obj, key_name):
+    """Retrieves or creates the object keyed on key_name
+    Returns tuple with object and boolean indicating whether it was created"""
+    def txn(key_name):
+        made = False
+        entity = Obj.get_by_key_name(key_name)
+        if entity is None:
+            entity = Obj(key_name=key_name)
+            entity.put()
+            made = True
+        return (entity, made)
+    return db.run_in_transaction(txn, key_name)
+
+def check_admin(club_id):
+    """See if we have admin access to a certain club's pages"""
+    session = get_current_session()
+    if not(session.is_active()):
+        raise Exception("Session is not active")
+    token_id = session.get("user", None)
+    if not(token_id):
+        raise Exception("No user in the session")
+    token = Token.get_by_key_name(token_id)
+    club = Club.get_by_key_name(club_id)
+    # do a joint query
+    query = TokenToClub.all()
+    query.filter("token =", token)
+    query.filter("club =", club)
+    joint = query.fetch(1)
+    if not(joint):
+        raise Exception("Not an admin")
+
 ################################################################################
 
 # either front page or choose organization
@@ -86,6 +117,9 @@ class Index(BaseHandler):
 class Flyer(BaseHandler):
     # serves up the flyer upload form
     def get(self, club_id):
+        # check credentials
+        check_admin(club_id)
+
         club = Club.get(club_id)
 
         values = {"name": club.name}
@@ -93,6 +127,9 @@ class Flyer(BaseHandler):
 
     # handles the flyer upload
     def post(self, club_id):
+        # check credentials
+        check_admin(club_id)
+
         # get the club
         club = Club.get(club_id)
 
@@ -100,17 +137,16 @@ class Flyer(BaseHandler):
         flyer = None
         while not(flyer):
             # randomly generate a flyer key
-            # ?? should we do this? don't want to leak insert times
-            flyer_key = generate_hash(club_id)[:5]
-            flyer = Flyer.get_or_insert(flyer_key)
-            if flyer.name:
+            flyer_key = generate_hash(club_id)[:6]
+            flyer, made = get_or_make(Flyer, flyer_key)
+            if not(made):
                 flyer = None
         name = self.request.get("name")
         # check if the filename is a pdf
         if name[-3:] != "pdf":
             # !!! replace this with something more useful
             raise Exception("File must be a PDF")
-        flyer.name = name
+        flyer.name = name[:-4]
         pdf = self.request.get("flyer")
         flyer.flyer = db.Blob(pdf)
         flyer.put()
@@ -179,15 +215,7 @@ class ClubNew(BaseHandler):
         # convert to slug
         clubslug = slugify(clubname)
         # basics of get_or_insert, with insertion
-        def txn(key_name):
-            made = False
-            entity = Club.get_by_key_name(key_name)
-            if entity is None:
-                entity = Club(key_name=key_name)
-                entity.put()
-                made = True
-            return (entity, made)
-        club, made = db.run_in_transaction(txn, clubslug)
+        club, made = get_or_make(Club, clubslug)
         if not(made):
             # generate an error
             add_notify("Error", "That particular name is taken. Sorry!")
@@ -205,56 +233,61 @@ class ClubNew(BaseHandler):
 
 class ClubEdit(BaseHandler):
     def get(self, club_id):
-        # !!! check credentials
+        # check credentials
+        check_admin(club_id)
+        session = get_current_session()
+
         # getting the editor
         club = Club.get_by_key_name(club_id)
-        emails = list(club.emails)
-        vals = {"emails": emails, "club": club.name}
+        email_refs = club.emails
+        # prefetch the emails
+        emails = [e.email
+                  for e in prefetch_refprop(email_refs, EmailToClub.email)]
+        vals = {"emails": emails,
+                "club": club.name,
+                "notifications": session["notify"]}
+        session["notify"] = None
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
     def post(self, club_id):
-        # !!! check credentials
+        # check credentials
+        check_admin(club_id)
         
         # get club
         club = Club.get_by_key_name(club_id)
         # add emails
         email_block = self.request.get("newemails")
-        emails = [r for e in re.split("\s\,", email_block) if r]
+        emails = [e for e in re.split("[\s\,\n]", email_block) if e]
         for email in emails:
-            email_obj = Email.get_or_insert(email)
-            if not(email.email):
-                email_obj.email = email
-                email_obj.put()
-            join = EmailToClub(email=email_obj, club=club)
-            join.put()
+            # search for the email
+            query = Email.all()
+            query.filter('email = ', email)
+            email_obj = query.fetch(1)
+            # if there's not already an email_obj, create it
+            while not(email_obj):
+                email_key = generate_hash(email)[:6]
+                email_obj, made = get_or_make(Email, email_key)
+                if not(made):
+                    email_obj = None
+                else:
+                    email_obj.email = email
+                    email_obj.put()
+            # make sure this pair is unique
+            query = EmailToClub.all()
+            query.filter('email =', email_obj)
+            query.filter('club =', club)
+            join = query.fetch(1)
+            if not(join):
+                join = EmailToClub(email=email_obj, club=club)
+                join.put()
 
         # !!! remove emails
         # !!! update attached messages
 
-        # !!! figure out what to do with this code
-        email_list = self.request.get("email_list")
-        club = Club.get(club)
-        emails = email_list.split(",")
-        cur_emails = [e.email for e in club.emails.fetch(100)]
-        add_emails = [e for e in emails if not(e in cur_emails)]
-        rem_emails = [e for e in cur_emails if not(e in emails)]
-        # accumulate var
-        email_rels = []
-        for email_addr in add_emails:
-            email = Email.get_or_insert(email_addr)
-            email_rel = Email2Club(email = email, club = club)
-            email_rels.append(email_rel)
-        db.put(email_rels)
-        for email_addr in rem_emails:
-            # !!!
-            pass
-            
         # create message
-        vals = {"emails":"###",
-                "message":"Created successfully"}
-        self.response.out.write(template.render("templates/club_edit.html",
-                                                vals))
+        add_notify("Notice", "Emails added")
+        self.redirect("/club/%s" % club.slug)
 
 class AttachGoogleAccount(BaseHandler):
     # for allowing expedient usage: auto-sign in users
@@ -263,8 +296,7 @@ class AttachGoogleAccount(BaseHandler):
         self.redirect("/")
     
 class StopClubMail(BaseHandler):
-    # !!! have to add a club_id
-    def get(self, email_id):
+    def get(self, club_id, email_id):
         email = Email.get(email_id)
         q = Job.all()
         q.filter("email =", email)

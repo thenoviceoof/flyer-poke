@@ -27,6 +27,8 @@ class Email(db.Model):
     enable = db.BooleanProperty(default=True)
 
 class Flyer(db.Model):
+    # stores the hash in a easy to access place
+    id = db.StringProperty()
     # a flyer belongs to only one club
     club = db.ReferenceProperty(Club)
     # human-readable handle - used in nag emails
@@ -44,6 +46,8 @@ class Flyer(db.Model):
 
 # a many-many link between flyers and emails
 class Job(db.Model):
+    # stores the hash in a easy to access place
+    id = db.StringProperty()
     # references
     flyer = db.ReferenceProperty(Flyer, collection_name="jobs")
     email = db.ReferenceProperty(Email, collection_name="jobs")
