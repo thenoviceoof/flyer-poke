@@ -11,8 +11,13 @@
 <div id="orglist">
   {% for club in clubs %}
   <div class="madeclub club">
-    <h2>{{ club.name }}</h2>
-    <a href="/club/{{ club.slug }}"><span></span></a>
+    <header>
+      <h2>
+	<a class="club-name" href="/flyer/{{ club.slug }}">{{ club.name }}</a>
+      </h2>
+      <a class="club-edit" href="/club/{{ club.slug }}">edit</a>
+    </header>
+    And a fuck-ton of metrics/flyer links here
   </div>
   {% endfor %}
   {% if not clubs %}
