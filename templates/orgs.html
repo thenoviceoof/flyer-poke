@@ -1,29 +1,13 @@
-{% extends "master.html" %}
+{% extends "authd_page.html" %}
 
 {% block title %}Organizations{% endblock %}
+{% block pagetitle %}Organizations{% endblock %}
 
-{% block style %}
+{% block pagestyle %}
 <link rel="stylesheet" href="/static/css/list.css" />
 {% endblock %}
 
-{% block content %}
-<header>
-  <a href="/">
-    <img id="logo" src="/static/img/logo_small.png">
-    <h1 id="title">Organizations</h1>
-  </a>
-  <a id="logout" href="/logout">Logout</a>
-</header>
-
-<div id="notifications">
-{% for note in notifications %}
-<div class="notification">
-  <span class="notification-title">{{ note.title }}</span>
-  {{ note.contents }}
-</div>
-{% endfor %}
-</div>
-
+{% block page %}
 <div id="orglist">
   {% for club in clubs %}
   <div class="madeclub club">

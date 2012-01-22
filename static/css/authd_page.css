@@ -1,0 +1,61 @@
+#content {
+    margin:2em auto 0 auto;
+    width:50em;
+    /* outline:1px black solid; */
+}
+
+#content * {
+    text-align:left;
+}
+
+header {
+    padding:0.5em;
+}
+
+header a {
+    display:inline-block;
+    text-decoration:none;
+}
+
+header a:visited {
+    color:black;
+}
+
+#logout {
+    float:right;
+    font-family:sans-serif;
+    color:gray;
+}
+
+#logo {
+    display:inline-block;
+    margin:0;
+}
+
+#title {
+    display:inline-block;
+    margin:0 0.5em;
+    vertical-align:25%;
+}
+
+/* ------------------------------------------------------------ */
+
+#notifications {
+    padding:1px;
+    border:0px #555 solid;
+    border-width:2px 0;
+}
+
+.notification {
+    display:inline-block;
+    max-width:12em;
+    margin:0.2em;
+    padding:0.5em;
+    border:2px #CC5 solid;
+    background-color:#EE8;
+    border-radius:0.5em;
+}
+
+.notification-title {
+    font:bold 1.1em sans-serif;
+}
