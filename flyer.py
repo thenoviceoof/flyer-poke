@@ -204,34 +204,35 @@ class ClubNew(BaseHandler):
         self.redirect(club_url)
 
 class ClubEdit(BaseHandler):
-    def get(self, club):
+    def get(self, club_id):
+        # !!! check credentials
         # getting the editor
-        club = Club.get_by_key_name(club)
+        club = Club.get_by_key_name(club_id)
         emails = list(club.emails)
         vals = {"emails": emails, "club": club.name}
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
-    def post(self, club):
-        # !!! have to have: adding, removing, updating
-        # editing the club
+    def post(self, club_id):
+        # !!! check credentials
+        
+        # get club
+        club = Club.get_by_key_name(club_id)
+        # add emails
+        email_block = self.request.get("newemails")
+        emails = [r for e in re.split("\s\,", email_block) if r]
+        for email in emails:
+            email_obj = Email.get_or_insert(email)
+            if not(email.email):
+                email_obj.email = email
+                email_obj.put()
+            join = EmailToClub(email=email_obj, club=club)
+            join.put()
 
-        # !!! copied code
-        recipients = self.request.get("contents")
-        lines = [r.split(" ") for r in recipients.strip().split("\n")
-                 if len(r)>0]
-        for line in lines:
-            log = logging.getLogger(__name__)
-            log.info(line)
-            email = line[0]
-            msg = " ".join(line[1:])
+        # !!! remove emails
+        # !!! update attached messages
 
-            email_obj = Email(email=str(email))
-            email_obj.put()
-            email_obj.id = str(email_obj.key().id())
-            email_obj.put()
-        # !!! end copied code
-
+        # !!! figure out what to do with this code
         email_list = self.request.get("email_list")
         club = Club.get(club)
         emails = email_list.split(",")

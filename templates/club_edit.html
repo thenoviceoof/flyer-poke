@@ -20,7 +20,7 @@
 
   <div id="newwrapper">
     <h2>Add emails to the list</h2>
-    <p>Put one email address per line</p>
+    <p>Copy paste the list of emails below</p>
     <form id="newmembers" method="post" action="/new-club">
       <textarea name="newemails"></textarea>
       <button>Add emails</button>
@@ -31,5 +31,8 @@
 
 {% block scripts %}
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+</script>
+<script type="text/javascript">
+  $("#newmembers").submit(); // !!!
 </script>
 {% endblock %}
