@@ -14,5 +14,12 @@ handlers:
 - url: /callback
   script: WIND_auth.py
 
+- url: /_ah/mail/support@.*\.appspotmail\.com 
+  script: handle_support.py
+  login: admin
+
 - url: /.*
   script: flyer.py
+
+inbound_services:
+- mail
