@@ -9,8 +9,8 @@ html {
 
 body {
     background:-webkit-gradient(linear, left top, left bottom,
-				from(#E0DDFF), to(#66F));
-    background:-moz-linear-gradient(top,  #DDF,  #77F);
+				from(#E0DDFF), to(#66F)) fixed;
+    background:-moz-linear-gradient(top,  #DDF,  #77F) fixed;
 }
 
 #logo {
@@ -27,16 +27,15 @@ body {
 /* -------------------------------------------------- */
 
 p#blurb {
-    padding:1em;
+    padding:1em 1em 1em 0;
     font:22px sans-serif;
-    /* color:#888; */
     color:black;
     text-shadow:+2px +2px #EEE, +2px -2px #EEE, -2px +2px #EEE, -2px -2px #EEE, -2px 0px #EEE, 0px -2px #EEE, 2px 0px #EEE, 0px 2px #EEE; 
 }
 
 p#notice {
-    padding:1em;
-    font:22px sans-serif;
+    padding:0 1em 1em 1em;
+    font:18px sans-serif;
     color:#888;
 }
 
@@ -45,41 +44,34 @@ p#notice {
     font-size:2em;
 }
 
-footer ul {
+footer {
     margin-top:1em;
+    color:#555;
     font-family:sans-serif;
 }
 
-footer li {
-    display:inline-block;
-    padding:1em;
-}
-
-footer li a {
+footer a, footer a:visited {
     color:#555;
 }
 
 /* -------------------------------------------------- */
 
 #about {
-    display:none;
-    position:absolute;
-    top:15%;
-    width:30%;
-    margin:0 auto;
-    padding:0.5em 0.8em 0.5em 0.0em;
-    font-size:1.4em;
-    word-spacing:0.1em;
-    line-height:1.1em;
+    width:40em;
+    margin:1em auto;
+    padding:0.25em;
+    font-family:sans-serif;
+    font-size:1.0em;
+    word-spacing:0.2em;
+    line-height:1.2em;
     background-color:#EEE;
-    border:0em black solid;
-    border-width:0.5em 0.5em 0.5em 0;
-    border-radius:0 2em 2em 0;
+    border:2px black solid;
+    border-radius:1em;
 }
 
 #about p {
     padding:0.5em;
-    text-align:right;
+    text-align:center;
 }
 
 #about a {

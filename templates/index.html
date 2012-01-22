@@ -3,37 +3,27 @@
 {% block content %}
 <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
 
-<div class="cloud" style="top:20%;left:20%;"></div>
-<div class="cloud" style="top:22%;left:22%;"></div>
-<div class="cloud" style="top:25%;left:16%;"></div>
+<p id="blurb">A fast and easy way to get people flyering</p>
 
-<div class="cloud" style="top:50%;left:80%;"></div>
-<div class="cloud" style="top:56%;left:83%;"></div>
-<div class="cloud" style="top:54%;left:86%;"></div>
-<div class="cloud" style="top:58%;left:79%;"></div>
+<p id="notice">Only open to {{ affiliation }}</p>
 
-<p id="blurb">A fast and easy way to track who's flyering what when</p>
-
-<p id="notice">Only open to {{ affiliation }} students</p>
-
-<form method="post" action="/flyer">
-  <button id="signin-button">SIGN THE FUCK IN</button>
+<form method="post" action="/pre_auth">
+  <button id="signin-button">{{ sign_in_button }}</button>
 </form>
 
 <div id="about">
-  <p>Here at the ADI we've been having at least 2 events per week, and trying to keep track of who's flyered what with a Google doc just wasn't cutting it.</p>
-  <p>Hence, we built this app to keep track of that sort of stuff, and as an added bonus actively remind people to flyer.</p>
-  <p>Questions? Thoughts? Nathan's uni is nyh2105</p>
-  <a href="javascript:document.getElementById('about').style.display='none';">Done reading</a>
+  <p>
+    3 clicks to post a flyer, with constant reminders and metrics? We
+    wanted better flyering without the drudge work, so we built this.
+  </p>
+  <p>
+    Bugs? Banhammered wrongly? Have raves and reviews? Want to talk about life?
+    <a href="mailto:{{ contact_info }}">Tell us what you think</a>.
+  </p>
 </div>
 
 <footer>
-  <ul>
-    <li>
-      <a href="javascript:document.getElementById('about').style.display='block';">about</a>
-    </li>
-    <li><a href="http://adicu.com/">ADI</a></li>
-  </ul>
+  Brought to you by the <a href="http://adicu.com/">Application
+  Development Initiative</a>
 </footer>
 {% endblock %}
-

@@ -3,19 +3,24 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import users
+from google.appengine.api.app_identity import get_application_id
 
-from models import Flyer, Job, Email, Token, Club
-from lib import *
 import hashlib
 import time
 import logging
 
 from gaesessions import get_current_session
 
+# to shut gae up
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
-from config import AFFILIATION
+# other pieces to import
+from models import Flyer, Job, Email, Token, Club
+from lib import *
+from config import AFFILIATION, SIGNIN_TEXT
+
+################################################################################
 
 # either front page or choose organization
 class Index(BaseHandler):
@@ -41,7 +46,10 @@ class Index(BaseHandler):
                     session["user"] = user_token.key().name()
                     self.redirect("/")
             # otherwise, just display the frontpage
-            values = {"affiliation":AFFILIATION}
+            admin_contact = "support@%s.appspotmail.com" % get_application_id()
+            values = {"affiliation": AFFILIATION,
+                      "sign_in_button": SIGNIN_TEXT,
+                      "contact_info": admin_contact}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 

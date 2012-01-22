@@ -1,6 +1,10 @@
 # Various configuration options
 
-AFFILIATION = ""
+AFFILIATION = "AFFILIATION"
+
+SIGNIN_TEXT = "SIGN IN TEXT"
+
+ADMIN_EMAIL = "EMAIL"
 
 # day of the week
 RENEW_DATE = "Monday"
