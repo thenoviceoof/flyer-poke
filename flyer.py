@@ -307,6 +307,12 @@ class StopAllMail(BaseHandler):
             job.delete()
         self.response.out.write(template.render("templates/sorry.html", {}))
 
+class Logout(BaseHandler):
+    def get(self):
+        session = get_current_session()
+        session.terminate()
+        self.redirect("/")
+
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
      ('/new-club', ClubNew), # new club
@@ -316,6 +322,7 @@ application = webapp.WSGIApplication(
      ('/done/(\d*)/(.*)', Done), 
      ('/stop/(.*)/(.*)', StopClubMail), # stop email from a club
      ('/stop/(.*)', StopAllMail), # stop all traffic to email
+     ('/logout', Logout),
      ],
     debug=DEBUG)
 
