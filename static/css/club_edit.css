@@ -2,18 +2,19 @@
     position:relative;
     margin:1em;
     padding:0.5em;
-    border:4px black solid;
-    border-radius:1em;
+    border:0px black solid;
+    border-width:1px 1px 1px 5px;
+    font-family:sans-serif;
 }
 
 .email:nth-child(odd) {
-    border-color: #69A;
-    background-color: #9BD;
+    border-color: #5C6;
+    background-color: #AEB;
 }
 
 .email:nth-child(even) {
-    border-color: #57B;
-    background-color: #79D;
+    border-color: #2A3;
+    background-color: #6D8;
 }
 
 #noemails {
