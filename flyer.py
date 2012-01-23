@@ -124,7 +124,7 @@ class Flyer(BaseHandler):
         # check credentials
         check_admin(club_id)
 
-        club = Club.get(club_id)
+        club = Club.get_by_key_name(club_id)
 
         values = {"name": club.name}
         self.response.out.write(template.render("templates/upload.html", values))

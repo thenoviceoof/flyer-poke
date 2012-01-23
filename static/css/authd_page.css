@@ -17,11 +17,11 @@ header#authd_head a {
     text-decoration:none;
 }
 
-header#authd_head a:visited {
+header#authd_head a#home:visited {
     color:black;
 }
 
-#logout {
+#logout, a#logout:visited {
     float:right;
     font-family:sans-serif;
     color:gray;

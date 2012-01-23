@@ -1,43 +1,24 @@
-{% extends "master.html" %}
+{% extends "authd_page.html" %}
 
-{% block style %}
+{% block title %}Upload Flyer{% endblock %}
+{% block pagetitle %}Upload Flyer{% endblock %}
+
+{% block pagestyle %}
 <link rel="stylesheet" href="/static/css/upload.css" />
 {% endblock %}
 
-{% block content %}
-<div id="about">
-  <a href="/">
-    <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
-  </a>
-
-  <p>
-    So this is how it goes: to the left is a box. You put emails and instructions in the box, like the example text.
-  </p>
-
-  <p>
-    Then you select a file to use, and then hit the big button at the bottom.
-  </p>
-
-  <p>
-    For now, it'll only do the next 3 days.
-  </p>
-</div>
-
+{% block page %}
 <form action="/upload" method="post" enctype="multipart/form-data">
-  <input type="text" id="flyer-name" name="name" value="Name" />
-  <textarea id="emails" name="content">
-example@example.com Flyer mudd
-another@example.com FLYER FASTER
-</textarea>
-
-  <div id="file-area">
-    <div>
-      <h2>Drag n' Drop</h2>
-      <input id="file" type="file" name="flyer" /><br/>
-    </div>
+  <h2 id="file-instructions">Drag n' Drop your Flyer here</h2>
+  <div id="file-wrapper">
+    <input id="file" type="file" name="flyer" /><br/>
   </div>
 
   <input id="submit" type="submit" value="LET'S DO THIS THING">
 </form>
 {% endblock %}
 
+{% block scripts %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+</script>
+{% endblock %}
