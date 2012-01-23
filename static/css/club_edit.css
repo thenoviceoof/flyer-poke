@@ -12,8 +12,8 @@
 }
 
 .email:nth-child(even) {
-    border-color: #B88;
-    background-color: #DA9;
+    border-color: #57B;
+    background-color: #79D;
 }
 
 #noemails {

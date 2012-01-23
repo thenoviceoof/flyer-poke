@@ -268,6 +268,7 @@ class ClubEdit(BaseHandler):
             email_obj = Email.get_or_insert(email)
             if not(email_obj.email):
                 email_obj.email = email
+                email_obj.put()
             # make sure this pair is unique
             query = EmailToClub.all()
             query.filter('email =', email_obj)
