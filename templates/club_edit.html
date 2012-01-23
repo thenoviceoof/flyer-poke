@@ -11,7 +11,16 @@
 <div id="emaillist">
   {% for email in emails %}
   <div class="email">
-    <h2>{{ email.email }}</h2>
+    <a class="admin" href="javascript:adminEmail('{{ email.0 }};')">Admin</a>
+    <span class="email-title">{{ email.0 }}</span> - 
+    {% if email.1 %}
+    <span class="message">{{ email.1 }}</span>
+    {% else %}
+    <span class="message nomessage">No Message</span>
+    {% endif %}
+    <a class="delete-email" href="javascript:deleteEmail('{{ email.0 }};')">
+      Delete
+    </a>
   </div>
   {% endfor %}
   {% if not emails %}

@@ -7,6 +7,15 @@
     font-family:sans-serif;
 }
 
+.email-title {
+    font-weight:bold;
+}
+
+.delete-email, .delete-enable:visited {
+    float:right;
+    color:#555;
+}
+
 .email:nth-child(odd) {
     border-color: #5C6;
     background-color: #AEB;
@@ -24,6 +33,21 @@
     opacity:0.6;
     border-radius:0.5em;
 }
+
+.admin {
+    color:black;
+}
+
+.message:hover {
+    outline:1px #555 solid;
+}
+
+.nomessage {
+    color:#888;
+    opacity:0.5;
+}
+
+/* ------------------------------------------------------------ */
 
 #newwrapper {
     margin-top:1em;

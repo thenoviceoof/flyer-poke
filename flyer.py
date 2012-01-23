@@ -245,9 +245,11 @@ class ClubEdit(BaseHandler):
         club = Club.get_by_key_name(club_id)
         email_refs = club.emails
         # prefetch the emails
-        emails = [e.email
+        emails = [e.email.email
                   for e in prefetch_refprop(email_refs, EmailToClub.email)]
-        vals = {"emails": emails,
+        messages = [e.message for e in email_refs]
+        email_info = zip(emails, messages)
+        vals = {"emails": email_info,
                 "club": club.name,
                 "notifications": session["notify"]}
         session["notify"] = None
