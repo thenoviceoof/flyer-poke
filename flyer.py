@@ -25,6 +25,11 @@ from config import AFFILIATION, SIGNIN_TEXT, DEBUG
 ################################################################################
 # utility fns
 
+# YOU WILL HAVE TO REPLACE THIS IF YOU DON'T GO TO COLUMBIA
+# this checks the format of the UNI, which all columbia emails adhere to
+def check_email(email):
+    return re.match("\w{2,3}\d{4}", email)
+
 def generate_hash(base):
     seed = base + str(time.time())
     md5 = hashlib.md5()
@@ -265,8 +270,11 @@ class ClubEdit(BaseHandler):
         club = Club.get_by_key_name(club_id)
         # add emails
         email_block = self.request.get("newemails")
-        emails = [e for e in re.split("[\s\,\n]", email_block) if e]
+        emails = [e for e in re.split("[\s\,\n]", email_block)
+                  if e and check_email(e)]
         for email in emails:
+            # add a suffix
+            email += EMAIL_SUFFIX
             # don't use hashes for emails, never access anyways
             email_obj = Email.get_or_insert(email)
             if not(email_obj.email):
@@ -281,12 +289,11 @@ class ClubEdit(BaseHandler):
                 join = EmailToClub(email=email_obj, club=club)
                 join.put()
 
-        # !!! remove emails
-        # !!! update attached messages
-
         # create message
         add_notify("Notice", "Emails added")
         self.redirect("/club/%s" % club.slug)
+
+# !!! remove emails w/ AJAX?
 
 class AttachGoogleAccount(BaseHandler):
     # for allowing expedient usage: auto-sign in users
