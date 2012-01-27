@@ -9,11 +9,10 @@
 
 {% block page %}
 <form action="/upload" method="post" enctype="multipart/form-data">
-  <h2 id="file-instructions">Drag n' Drop your Flyer here</h2>
-  <div id="file-wrapper">
-    <input id="file" type="file" name="flyer" /><br/>
-  </div>
-
+  <!-- <h2 id="file-instructions">Drag n' Drop your Flyer here</h2> -->
+  <h2>Step 1: Select PDF flyer</h2>
+    <input id="file" type="file" name="flyer" />
+  <h2>Step 2: Click the button</h2>
   <input id="submit" type="submit" value="LET'S DO THIS THING">
 </form>
 {% endblock %}

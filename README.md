@@ -39,12 +39,14 @@ columbia students, and wielding a biznazty banhammur.
 
 TODO
 ================================================================================
- * see github issues tracker, that is where all the things are
+ * see github issues tracker, that is where all the to fix things are
 
 Wish list:
+ * add drag and drop
+ * location survey to group members: decide who flyers where with minimum fuss
+ * add metrics
  * Gamify the process: who's flyered the fastest?
  * Get the flyer generator integrated
- * location survey to group members: decide who flyers where with minimum fuss
 
 Things to check out:
  * http://code.google.com/appengine/docs/python/blobstore/overview.html

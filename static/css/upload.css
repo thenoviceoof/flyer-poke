@@ -1,33 +1,20 @@
 form {
-    width:100%;
     float:left;
-    margin:0;
-}
-
-#file-instructions {
-    position:relative;
-    top:6em;
-    text-align:center;
-}
-
-#file-wrapper {
-    margin:0 auto;
-    width:80%;
-    text-align:center;
+    margin:1em;
+    padding:1em;
+    background-color:rgba(255, 255, 255, 0.5);
+    border-radius:1em;
 }
 
 input#file {
-    display:block;
-    padding:8em 20%;
-    background-color:#fbfc9f;
-    border:3px #e4c54a dashed;
-    font-size:1.2em;
+    margin:1em;
+    font-size:1.3em;
 }
 
 input#submit {
     display:block;
-    width:50%;
-    margin:0.1em auto 0 auto;
-    font-size:2em;
+    margin:1em;
+    padding:0.4em;
+    font-size:1.3em;
     text-align:center;
 }
