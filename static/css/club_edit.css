@@ -35,6 +35,8 @@
 }
 
 .admin {
+    display:inline-block;
+    width:5em;
     color:black;
 }
 
