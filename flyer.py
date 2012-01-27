@@ -90,6 +90,7 @@ class Index(BaseHandler):
             if not(token_user):
                 session.terminate()
                 self.redirect("/")
+                return
             clubrefs = token_user.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
                      for c in prefetch_refprop(clubrefs, TokenToClub.club)]
