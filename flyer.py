@@ -20,7 +20,7 @@ use_library('django', '0.96')
 from models import Flyer, Job, Email, Token, Club
 from models import TokenToClub, EmailToClub
 from lib import *
-from config import AFFILIATION, SIGNIN_TEXT, DEBUG
+from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX
 
 ################################################################################
 # utility fns
@@ -28,7 +28,7 @@ from config import AFFILIATION, SIGNIN_TEXT, DEBUG
 # YOU WILL HAVE TO REPLACE THIS IF YOU DON'T GO TO COLUMBIA
 # this checks the format of the UNI, which all columbia emails adhere to
 def check_email(email):
-    return re.match("\w{2,3}\d{4}", email)
+    return re.match("^\w{2,3}\d{4}$", email)
 
 def generate_hash(base):
     seed = base + str(time.time())
@@ -270,8 +270,8 @@ class ClubEdit(BaseHandler):
         club = Club.get_by_key_name(club_id)
         # add emails
         email_block = self.request.get("newemails")
-        emails = [e for e in re.split("[\s\,\n]", email_block)
-                  if e and check_email(e)]
+        emails_raw = [e for e in re.split("[\s\,\n]", email_block) if e]
+        emails = [e for e in emails_raw if check_email(e)]
         for email in emails:
             # add a suffix
             email += EMAIL_SUFFIX
@@ -290,7 +290,10 @@ class ClubEdit(BaseHandler):
                 join.put()
 
         # create message
-        add_notify("Notice", "Emails added")
+        if emails:
+            add_notify("Notice", "Emails added")
+        if len(emails) != len(emails_raw):
+            add_notify("Notice", "Not all emails added")
         self.redirect("/club/%s" % club.slug)
 
 # !!! remove emails w/ AJAX?
