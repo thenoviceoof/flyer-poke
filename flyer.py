@@ -4,6 +4,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import users
 from google.appengine.api.app_identity import get_application_id
+from google.appengine.api import mail
 
 import hashlib
 import time
@@ -29,6 +30,14 @@ from config import AFFILIATION, DEBUG, EMAIL_SUFFIX
 # this checks the format of the UNI, which all columbia emails adhere to
 def check_email(email):
     return re.match("^\w{2,3}\d{4}$", email)
+
+# checks emails for formatting
+def normalize_email(email):
+    if re.match("^\w{2,3}\d{4}$", email):
+        return email+EMAIL_SUFFIX
+    if re.match("^\w{2,3}\d{4}@columbia.edu$", email):
+        return email
+    return False
 
 def generate_hash(base):
     seed = base + str(time.time())
@@ -93,11 +102,12 @@ class Index(BaseHandler):
             email_query = Email.all()
             email_query.filter('user = ', user)
             email = email_query.get()
-            # no email yet, let's make one
-            while not(email) or not(made):
-                email_key = generate_hash(str(user))
-                email, made = get_or_make(Email, email_key)
-            # check if we're linked yet
+            # if we're not already linked...
+            if not(email):
+                # display the email-linking page
+                self.response.out.write(template.render(
+                        "templates/user_link.html", {}))
+                return
             if not(email.user_enable):
                 values = {}
                 if email.email:
@@ -106,7 +116,7 @@ class Index(BaseHandler):
                 self.response.out.write(template.render(
                         "templates/user_link.html", values))
                 return
-            # serve up the listing page
+            # otherwise, serve up the listing page
             clubrefs = email.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
                      for c in prefetch_refprop(clubrefs, TokenToClub.club)]
@@ -119,7 +129,6 @@ class Index(BaseHandler):
             # otherwise, just display the frontpage
             admin_contact = "support@%s.appspotmail.com" % get_application_id()
             values = {"affiliation": AFFILIATION,
-                      "sign_in_button": SIGNIN_TEXT,
                       "contact_info": admin_contact,
                       "login_url": users.create_login_url(self.request.uri)}
             self.response.out.write(template.render("templates/index.html",
@@ -127,7 +136,47 @@ class Index(BaseHandler):
 
 # /linkemail
 class LinkEmail(BaseHandler):
-    pass
+    def post(self):
+        user = users.get_current_user()
+        if user:
+            # get the email
+            email_addr = normalize_email(self.request.get("email"))
+            email_query = Email.all()
+            email_query.filter('email = ', email_addr)
+            email = email_query.get()
+            # no email yet, let's make one
+            made = True
+            while not(email) or not(made):
+                email_key = generate_hash(str(user))
+                email, made = get_or_make(Email, email_key)
+                # if we just made it, add the email_addr
+                if made:
+                    email.email = email_addr
+                    email.put()
+            # user already tied, don't allow transfers through this interface
+            if email.user_enable or email.user:
+                self.redirect("/")
+                return
+            # attach the user
+            email.user = user
+            email.user_request_key = generate_hash(str(email))
+            email.user_request_time = datetime.today()
+            email.put()
+            # send a verification email
+            domain = "http://%s.appspot.com" % get_application_id()
+            verify_addr = domain + "/linkemail/%s" % email.user_request_key
+            msg = mail.EmailMessage()
+            fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
+            msg.sender  = "Flyer Guy <%s>" % fromaddr
+            msg.to      = email.email
+            msg.subject = "[Flyer] Verify your email address"
+            msg.html    = template.render("templates/email_verify.html",
+                                          {'verify_addr':verify_addr})
+            # !!!
+            add_notify("Notice", "Sent verification email!")
+            self.redirect("/")
+        else:
+            self.redirect("/")
 
 # upload flyer
 class Flyer(BaseHandler):
@@ -328,6 +377,7 @@ class Logout(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
+     ('/linkemail', LinkEmail),
      ('/new-club', ClubNew), # new club
      ('/club/(.*)', ClubEdit), # club edit
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)

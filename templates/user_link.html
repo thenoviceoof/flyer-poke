@@ -3,9 +3,14 @@
 {% block content %}
 <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
 
+{% if email %}
+<p id="blurb">We sent a verification email to {{ email }}. If that's
+the wrong email, reenter it below</p>
+{% else %}
 <p id="blurb">We need to confirm you're a student, so enter your UNI</p>
+{% endif %}
 
-<form id="linkemailform" name="linkemailform" action="/linkemail">
+<form id="linkemailform" name="linkemailform" action="/linkemail" method="POST">
   <input id="email-link" name="email" type="text" /><br/>
   <button id="signin-button">Send Confirmation Email</button>
 </form>
