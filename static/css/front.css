@@ -12,6 +12,9 @@
 /* -------------------------------------------------- */
 
 p#blurb {
+    display:block;
+    width:70%;
+    margin:0 auto;
     padding:1em 1em 1em 0;
     font:22px sans-serif;
     color:black;
@@ -27,15 +30,6 @@ p#notice {
 #signin-button {
     padding:0.5em;
     font-size:2em;
-}
-
-/* ---------------------------------------- */
-
-#email-link {
-    width:20em;
-    margin:1em;
-    padding:0.2em;
-    font:1.5em sans-serif;
 }
 
 /* -------------------------------------------------- */
@@ -60,4 +54,28 @@ p#notice {
 
 #about a {
     color:black;
+}
+
+
+/* ------------------------------------------------------------ */
+
+#email-link {
+    width:20em;
+    margin:1em;
+    padding:0.2em;
+    font:1.5em sans-serif;
+}
+
+#notifications {
+}
+
+.notification {
+    display:inline-block;
+    padding:1em;
+    background-color:#EE8;
+    border-radius:1em;
+}
+
+.notification-title {
+    font-weight:bold;
 }

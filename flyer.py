@@ -10,6 +10,7 @@ import hashlib
 import time
 import re
 import logging
+from datetime import datetime
 
 from gaesessions import get_current_session
 
@@ -21,7 +22,7 @@ use_library('django', '0.96')
 from models import Flyer, Job, Email, Club
 from models import EmailToClub
 from lib import *
-from config import AFFILIATION, DEBUG, EMAIL_SUFFIX
+from config import AFFILIATION, DEBUG, EMAIL_SUFFIX, EMAIL_VERIFY_LIMIT
 
 ################################################################################
 # utility fns
@@ -111,7 +112,12 @@ class Index(BaseHandler):
             if not(email.user_enable):
                 values = {}
                 if email.email:
-                    values = {'email': email.email}
+                    values['email'] = email.email
+                values['allow'] = email.user_request_count < EMAIL_VERIFY_LIMIT
+                session = get_current_session()
+                if session:
+                    values['notifications'] = session.get("notify", None)
+                    session["notify"] = None
                 # display the email-linking page
                 self.response.out.write(template.render(
                         "templates/user_link.html", values))
@@ -141,6 +147,10 @@ class LinkEmail(BaseHandler):
         if user:
             # get the email
             email_addr = normalize_email(self.request.get("email"))
+            if not(email_addr):
+                add_notify("Notice", "Not a correct UNI format")
+                self.redirect("/")
+                return
             email_query = Email.all()
             email_query.filter('email = ', email_addr)
             email = email_query.get()
@@ -154,13 +164,22 @@ class LinkEmail(BaseHandler):
                     email.email = email_addr
                     email.put()
             # user already tied, don't allow transfers through this interface
-            if email.user_enable or email.user:
+            if email.user_enable:
+                add_notify("Notice", "User is already enabled")
                 self.redirect("/")
                 return
-            # attach the user
-            email.user = user
+            if not(email.user_request_count < EMAIL_VERIFY_LIMIT):
+                add_notify("Notice",
+                           "Too many verification emails, check your inbox")
+                self.redirect("/")
+                return
+            if not(email.user):
+                email.user = user
+            # generate a new key
             email.user_request_key = generate_hash(str(email))
             email.user_request_time = datetime.today()
+            # don't care about race conditions
+            email.request_count = email.user_request_count + 1
             email.put()
             # send a verification email
             domain = "http://%s.appspot.com" % get_application_id()
@@ -172,8 +191,6 @@ class LinkEmail(BaseHandler):
             msg.subject = "[Flyer] Verify your email address"
             msg.html    = template.render("templates/email_verify.html",
                                           {'verify_addr':verify_addr})
-            # !!!
-            add_notify("Notice", "Sent verification email!")
             self.redirect("/")
         else:
             self.redirect("/")

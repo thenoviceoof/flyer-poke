@@ -3,17 +3,38 @@
 {% block content %}
 <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
 
-{% if email %}
-<p id="blurb">We sent a verification email to {{ email }}. If that's
-the wrong email, reenter it below</p>
-{% else %}
-<p id="blurb">We need to confirm you're a student, so enter your UNI</p>
+{% if notifications %}
+<div id="notifications">
+  {% for note in notifications %}
+<div class="notification">
+  <span class="notification-title">{{ note.title }}</span>
+  {{ note.body }}
+</div>
+  {% endfor %}
+</div>
 {% endif %}
 
+{% if email and allow %}
+<p id="blurb">We sent a verification email to
+<span style="text-decoration:underline;">{{ email }}</span>.
+Check your inbox, and follow the instructions there.
+If that's the wrong email or you lost the last email, reenter it below</p>
+{% else %}
+  {% if email %}
+<p id="blurb">We sent a verification email to {{ email }}.
+Check your inbox, and follow the instructions there.</p>
+  {% else %}
+<p id="blurb">We need to confirm you are a student, so enter your UNI</p>
+  {% endif %}
+{% endif %}
+
+{% if allow %}
 <form id="linkemailform" name="linkemailform" action="/linkemail" method="POST">
   <input id="email-link" name="email" type="text" /><br/>
   <button id="signin-button">Send Confirmation Email</button>
 </form>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
