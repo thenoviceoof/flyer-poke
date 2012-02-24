@@ -147,13 +147,11 @@ class Flyer(BaseHandler):
         club = Club.get(club_id)
 
         # make a flyer
-        flyer = None
-        while not(flyer):
+        flyer, made = None, None
+        while not(flyer) or not(made):
             # randomly generate a flyer key
             flyer_key = generate_hash(club_id)[:6]
             flyer, made = get_or_make(Flyer, flyer_key)
-            if not(made):
-                flyer = None
         name = self.request.get("name")
         # check if the filename is a pdf
         if name[-3:] != "pdf":
@@ -317,25 +315,28 @@ class AttachGoogleAccount(BaseHandler):
             self.redirect("/")
     
 class StopClubMail(BaseHandler):
-    def get(self, club_id, email_id):
-        email = Email.get(email_id)
-        q = Job.all()
-        q.filter("email =", email)
-        jobs = q.fetch(BOUND)
-        for job in jobs:
-            job.delete()
-        self.response.out.write(template.render("templates/sorry.html", {}))
+    def get(self, job_id):
+        pass
+        # !!! have to delete jobs, set user to no 
+        # email = Email.get(email_id)
+        # q = Job.all()
+        # q.filter("email =", email)
+        # jobs = q.fetch(BOUND)
+        # for job in jobs:
+        #     job.delete()
+        # self.response.out.write(template.render("templates/sorry.html", {}))
 
 class StopAllMail(BaseHandler):
     def get(self, email_id):
+        pass
         # !!! have to delete jobs, set user to no 
-        email = Email.get(email_id)
-        q = Job.all()
-        q.filter("email =", email)
-        jobs = q.fetch(BOUND)
-        for job in jobs:
-            job.delete()
-        self.response.out.write(template.render("templates/sorry.html", {}))
+        # email = Email.get(email_id)
+        # q = Job.all()
+        # q.filter("email =", email)
+        # jobs = q.fetch(BOUND)
+        # for job in jobs:
+        #     job.delete()
+        # self.response.out.write(template.render("templates/sorry.html", {}))
 
 class Logout(BaseHandler):
     def get(self):
@@ -351,8 +352,8 @@ application = webapp.WSGIApplication(
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)
      ('/pdf/(.*)', Download), # get flyer for certain person (job)
      ('/done/(.*)', Done), # toggle done for certain person (job)
-     ('/stop/(.*)/(.*)', StopClubMail), # stop email from a club
-     ('/stop/(.*)', StopAllMail), # stop all traffic to email
+     ('/stop_club/(.*)', StopClubMail), # stop email from a club
+     ('/stop_all/(.*)', StopAllMail), # stop all traffic to email
      ('/logout', Logout),
      ],
     debug=DEBUG)

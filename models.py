@@ -22,6 +22,8 @@ class Token(db.Model):
 # Flyer-sending-related models
 
 class Email(db.Model):
+    # stores the hash in a easy to access place
+    id = db.StringProperty()
     email = db.StringProperty()
     # either banhammer, or request to not have the service
     enable = db.BooleanProperty(default=True)
