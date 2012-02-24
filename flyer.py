@@ -193,80 +193,6 @@ class LinkEmail(BaseHandler):
             add_notify("Notice", "Sign in")
             self.redirect("/")
 
-# upload flyer
-class Flyer(BaseHandler):
-    # serves up the flyer upload form
-    def get(self, club_id):
-        # check credentials
-        check_admin(club_id)
-
-        club = Club.get_by_key_name(club_id)
-
-        values = {"name": club.name}
-        self.response.out.write(template.render("templates/upload.html", values))
-
-    # handles the flyer upload
-    def post(self, club_id):
-        # check credentials
-        check_admin(club_id)
-
-        # get the club
-        club = Club.get(club_id)
-
-        # make a flyer
-        flyer, made = None, None
-        while not(flyer) or not(made):
-            # randomly generate a flyer key
-            flyer_key = generate_hash(club_id)[:6]
-            flyer, made = get_or_make(Flyer, flyer_key)
-        flyer.id = flyer_key
-        name = self.request.get("name")
-        # check if the filename is a pdf
-        if name[-3:] != "pdf":
-            # !!! replace this with something more useful
-            raise Exception("File must be a PDF")
-        flyer.name = name[:-4]
-        pdf = self.request.get("flyer")
-        flyer.flyer = db.Blob(pdf)
-        flyer.put()
-
-        # make a bunch of jobs from the club and flyer
-        for email in club.emails:
-            job = Job(flyer=flyer, email=email, done = False,
-                      state=INIT)
-            job.put()
-
-        # and write out the response
-        self.response.out.write(template.render("templates/finish.html", {}))
-
-class Download(BaseHandler):
-    # don't allow "anon" downloads
-    def get(self, job_id):
-        job = Job.get(job_id)
-        flyer = job.flyer
-        if flyer.flyer:
-            if job.state == INIT:
-                job.state = DOWNLOADED
-                job.put()
-            self.response.headers['Content-Type'] = "application/pdf"
-            self.response.headers['Content-Disposition'] = \
-                "attachment; filename=%s.pdf" % flyer.name
-            self.response.out.write(flyer.flyer)
-        else:
-            self.error(404)
-
-class Done(BaseHandler):
-    # means user is done
-    def get(self, job_id):
-        job = Job.get(job_id)
-
-        if job:
-            job.state = DONE
-            job.put()
-            self.response.out.write(template.render("templates/finish.html",{}))
-        else:
-            self.error(404)
-
 class ClubNew(BaseHandler):
     def post(self):
         # check there's someone signed in
@@ -357,6 +283,82 @@ class ClubEdit(BaseHandler):
         if len(emails) != len(emails_raw):
             add_notify("Notice", "Not all emails added")
         self.redirect("/club/%s" % club.slug)
+
+# non-admin stuff
+
+# upload flyer
+class Flyer(BaseHandler):
+    # serves up the flyer upload form
+    def get(self, club_id):
+        # check credentials
+        check_admin(club_id)
+
+        club = Club.get_by_key_name(club_id)
+
+        values = {"name": club.name}
+        self.response.out.write(template.render("templates/upload.html", values))
+
+    # handles the flyer upload
+    def post(self, club_id):
+        # check credentials
+        check_admin(club_id)
+
+        # get the club
+        club = Club.get(club_id)
+
+        # make a flyer
+        flyer, made = None, None
+        while not(flyer) or not(made):
+            # randomly generate a flyer key
+            flyer_key = generate_hash(club_id)[:6]
+            flyer, made = get_or_make(Flyer, flyer_key)
+        flyer.id = flyer_key
+        name = self.request.get("name")
+        # check if the filename is a pdf
+        if name[-3:] != "pdf":
+            # !!! replace this with something more useful
+            raise Exception("File must be a PDF")
+        flyer.name = name[:-4]
+        pdf = self.request.get("flyer")
+        flyer.flyer = db.Blob(pdf)
+        flyer.put()
+
+        # make a bunch of jobs from the club and flyer
+        for email in club.emails:
+            job = Job(flyer=flyer, email=email, done = False,
+                      state=INIT)
+            job.put()
+
+        # and write out the response
+        self.response.out.write(template.render("templates/finish.html", {}))
+
+class Download(BaseHandler):
+    # don't allow "anon" downloads
+    def get(self, job_id):
+        job = Job.get(job_id)
+        flyer = job.flyer
+        if flyer.flyer:
+            if job.state == INIT:
+                job.state = DOWNLOADED
+                job.put()
+            self.response.headers['Content-Type'] = "application/pdf"
+            self.response.headers['Content-Disposition'] = \
+                "attachment; filename=%s.pdf" % flyer.name
+            self.response.out.write(flyer.flyer)
+        else:
+            self.error(404)
+
+class Done(BaseHandler):
+    # means user is done
+    def get(self, job_id):
+        job = Job.get(job_id)
+
+        if job:
+            job.state = DONE
+            job.put()
+            self.response.out.write(template.render("templates/finish.html",{}))
+        else:
+            self.error(404)
 
 # !!! remove emails w/ AJAX?
     
