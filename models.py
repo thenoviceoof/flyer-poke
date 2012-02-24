@@ -28,8 +28,6 @@ class Email(db.Model):
     user_request_key = db.StringProperty()
     # when admin rights were requested: timeout for the request key
     user_request_time = db.DateTimeProperty()
-    # count, because spamming is possible
-    user_request_count = db.IntegerProperty(default=0)
 
 class Flyer(db.Model):
     # stores the hash in a easy to access place

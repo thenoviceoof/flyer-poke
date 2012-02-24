@@ -41,10 +41,11 @@ def normalize_email(email):
     return False
 
 def generate_hash(base):
-    seed = base + str(time.time())
     md5 = hashlib.md5()
-    md5.update(seed)
+    md5.update(base)
     return md5.hexdigest()
+def generate_random_hash(base):
+    return generate_hash(base + str(time.time()))
 
 def slugify(s):
     return re.sub("\W",'', s).lower()
@@ -113,7 +114,7 @@ class Index(BaseHandler):
                 values = {}
                 if email.email:
                     values['email'] = email.email
-                values['allow'] = email.user_request_count < EMAIL_VERIFY_LIMIT
+                # handle notifications
                 session = get_current_session()
                 if session:
                     values['notifications'] = session.get("notify", None)
@@ -145,32 +146,29 @@ class LinkEmail(BaseHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            # get the email
+            # find if we're already bound to an email
+            email_query = Email.all()
+            email_query.filter("user =", user)
+            email_obj = email_query.get()
+            if email_obj:
+                add_notify("Notice", "Already bound to an email")
+                self.redirect("/")
+                return
+            # handle the email input
             email_addr = normalize_email(self.request.get("email"))
             if not(email_addr):
                 add_notify("Notice", "Not a correct UNI format")
                 self.redirect("/")
                 return
-            email_query = Email.all()
-            email_query.filter('email = ', email_addr)
-            email = email_query.get()
-            # no email yet, let's make one
-            made = True
-            while not(email) or not(made):
-                email_key = generate_hash(str(user))
-                email, made = get_or_make(Email, email_key)
-                # if we just made it, add the email_addr
-                if made:
-                    email.email = email_addr
-                    email.put()
+            # find the email by the email address
+            email_key = generate_hash(email_addr)[:10]
+            email, made = get_or_make(Email, email_key)
+            if not(email.email):
+                email.email = email_addr
+                email.put()
             # user already tied, don't allow transfers through this interface
             if email.user_enable:
                 add_notify("Notice", "User is already enabled")
-                self.redirect("/")
-                return
-            if not(email.user_request_count < EMAIL_VERIFY_LIMIT):
-                add_notify("Notice",
-                           "Too many verification emails, check your inbox")
                 self.redirect("/")
                 return
             if not(email.user):
@@ -178,9 +176,8 @@ class LinkEmail(BaseHandler):
             # generate a new key
             email.user_request_key = generate_hash(str(email))
             email.user_request_time = datetime.today()
-            # don't care about race conditions
-            email.request_count = email.user_request_count + 1
             email.put()
+
             # send a verification email
             domain = "http://%s.appspot.com" % get_application_id()
             verify_addr = domain + "/linkemail/%s" % email.user_request_key
@@ -193,6 +190,7 @@ class LinkEmail(BaseHandler):
                                           {'verify_addr':verify_addr})
             self.redirect("/")
         else:
+            add_notify("Notice", "Sign in")
             self.redirect("/")
 
 # upload flyer

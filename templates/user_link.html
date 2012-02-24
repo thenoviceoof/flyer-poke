@@ -14,21 +14,16 @@
 </div>
 {% endif %}
 
-{% if email and allow %}
+{% if email %}
 <p id="blurb">We sent a verification email to
-<span style="text-decoration:underline;">{{ email }}</span>.
-Check your inbox, and follow the instructions there.
-If that's the wrong email or you lost the last email, reenter it below</p>
+<span style="text-decoration:underline;">{{ email }}</span>.<br/>
+Check your inbox, and follow the instructions there. <br/>
+If that's the wrong email or you lost the last email, <br/>
+you'll have to wait until we remove your previous attempt in a day or two.
+</p>
 {% else %}
-  {% if email %}
-<p id="blurb">We sent a verification email to {{ email }}.
-Check your inbox, and follow the instructions there.</p>
-  {% else %}
 <p id="blurb">We need to confirm you are a student, so enter your UNI</p>
-  {% endif %}
-{% endif %}
 
-{% if allow %}
 <form id="linkemailform" name="linkemailform" action="/linkemail" method="POST">
   <input id="email-link" name="email" type="text" /><br/>
   <button id="signin-button">Send Confirmation Email</button>
