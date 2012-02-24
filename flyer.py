@@ -74,24 +74,27 @@ def get_or_make(Obj, key_name):
         return (entity, made)
     return db.run_in_transaction(txn, key_name)
 
-# !!! change this
+def get_email(user):
+    """Get email object associated with user"""
+    email_query = Email.all()
+    email_query.filter("user = ", user)
+    return email_query.get()
+
 def check_admin(club_id):
     """See if we have admin access to a certain club's pages"""
-    session = get_current_session()
-    if not(session.is_active()):
-        raise Exception("Session is not active")
-    token_id = session.get("user", None)
-    if not(token_id):
-        raise Exception("No user in the session")
-    token = Token.get_by_key_name(token_id)
+    user = users.get_current_user()
+    email = get_email(user)
     club = Club.get_by_key_name(club_id)
+    if not(user) or not(email) or not(club) or not(email.user_enable):
+        return False
     # do a joint query
-    query = TokenToClub.all()
-    query.filter("token =", token)
+    query = EmailToClub.all()
+    query.filter("email =", email)
     query.filter("club =", club)
-    joint = query.fetch(1)
+    joint = query.get()
     if not(joint):
-        raise Exception("Not an admin")
+        return False
+    return joint.admin
 
 ################################################################################
 
@@ -105,12 +108,15 @@ class Index(BaseHandler):
             email_query.filter('user = ', user)
             email = email_query.get()
             # if we're not already linked...
-            if not(email) and not(DEBUG):
+            if not(email):
                 # display the email-linking page
                 self.response.out.write(template.render(
                         "templates/user_link.html", {}))
                 return
-            if not(email.user_enable) and not(DEBUG):
+            if DEBUG:
+                email.user_enable = True
+                email.put()
+            if not(email.user_enable):
                 values = {}
                 if email.email:
                     values['email'] = email.email
@@ -126,10 +132,14 @@ class Index(BaseHandler):
             # otherwise, serve up the listing page
             clubrefs = email.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
-                     for c in prefetch_refprop(clubrefs, TokenToClub.club)]
-            notifications = session.get("notify", None)
-            values = {"clubs": clubs, "notifications": notifications}
-            session["notify"] = None
+                     for c in prefetch_refprop(clubrefs, EmailToClub.club)
+                     if check_admin(c.club.slug)]
+            values = {"clubs": clubs}
+            # try getting notifications
+            session = get_current_session()
+            if session:
+                values['notifications'] = session.get("notify", None)
+                session["notify"] = None
             self.response.out.write(template.render("templates/orgs.html",
                                                     values))            
         else:
@@ -218,80 +228,100 @@ class VerifyEmail(BaseHandler):
         add_notify("Notice", "Emails linked!")
         self.redirect("/")
 
-# !!! do the user/email link
-
+# /new-club
 class ClubNew(BaseHandler):
     def post(self):
         # check there's someone signed in
-        session = get_current_session()
-        if session.is_active():
-            if not(session["user"]):
-                self.error(404)
-        else:
-            self.error(404)
-        clubname = self.request.get("name")
+        user = users.get_current_user()
+        if not(user):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        # get associated email
+        email_query = Email.all()
+        email_query.filter("user = ", user)
+        email = email_query.get()
+        if not(email) or not(email.user_enable):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
         # basic sanity check
+        clubname = self.request.get("name")
         if not(clubname):
-            self.error(500)
+            add_notify("Error", "Please enter a club name")
+            self.redirect("/")
+            return
         # convert to slug
         clubslug = slugify(clubname)
         # basics of get_or_insert, with insertion
         club, made = get_or_make(Club, clubslug)
         if not(made):
             # generate an error
-            add_notify("Error", "That particular name is taken. Sorry!")
+            add_notify("Error", "That particular club name is taken. Sorry!")
             self.redirect("/")
             return
-        # make a club, add current user as person
+        # make a club, add current user as an admin
         club.name = clubname
         club.slug = clubslug
         club.put()
-        token = Token.get_or_insert(session["user"])
-        join = TokenToClub(token=token, club=club)
+        join = EmailToClub(email=email, club=club, admin=True)
         join.put()
         club_url = "/club/%s" % clubslug
         self.redirect(club_url)
 
+# /club/(\w*)
 class ClubEdit(BaseHandler):
     def get(self, club_id):
+        """Get the editor page"""
         # check credentials
-        check_admin(club_id)
-        session = get_current_session()
-
-        # getting the editor
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        user = users.get_current_user()
         club = Club.get_by_key_name(club_id)
-        email_refs = club.emails
+        email = get_email(user)
+
         # prefetch the emails
+        email_refs = club.emails
         emails = [e.email.email
                   for e in prefetch_refprop(email_refs, EmailToClub.email)]
+        admins = [e.admin for e in email_refs]
         messages = [e.message for e in email_refs]
-        email_info = zip(emails, messages)
+        email_info = zip(admins, emails, messages)
         vals = {"emails": email_info,
-                "club": club.name,
-                "notifications": session["notify"]}
-        session["notify"] = None
+                "club": club.name}
+        # get the notifications
+        session = get_current_session()
+        if session:
+            vals["notifications"] = session["notify"]
+            session["notify"] = None
         self.response.out.write(template.render("templates/club_edit.html",
                                                 vals))
 
     def post(self, club_id):
         # check credentials
-        check_admin(club_id)
-        
-        # get club
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        user = users.get_current_user()
         club = Club.get_by_key_name(club_id)
+        email = get_email(user)
+
         # add emails
         email_block = self.request.get("newemails")
         emails_raw = [e for e in re.split("[\s\,\n]", email_block) if e]
         emails = [e for e in emails_raw if check_email(e)]
         for email in emails:
             # add a suffix
-            email += EMAIL_SUFFIX
+            email = normalize_email(email)
             # use a hash for emails, accessed when deleting
             email_obj, made = None, None
             while not(email_obj) or not(made):
                 # randomly generate a key
-                email_key = generate_hash(email)[:8]
-                email_obj, made = get_or_make(Flyer, flyer_key)
+                email_key = generate_hash(email)[:10]
+                email_obj, made = get_or_make(Email, email_key)
             if not(email_obj.email):
                 email_obj.email = email
                 email_obj.put()
@@ -321,7 +351,13 @@ class Flyer(BaseHandler):
     # serves up the flyer upload form
     def get(self, club_id):
         # check credentials
-        check_admin(club_id)
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        user = users.get_current_user()
+        club = Club.get_by_key_name(club_id)
+        email = get_email(user)
 
         club = Club.get_by_key_name(club_id)
 
@@ -331,7 +367,14 @@ class Flyer(BaseHandler):
     # handles the flyer upload
     def post(self, club_id):
         # check credentials
-        check_admin(club_id)
+        user = users.get_current_user()
+        if not(user):
+            add_notify("Error", "You're not signed in")            
+            self.redirect("/")
+            return
+        club = Club.get_by_key_name(club_id)
+        email = get_email(user)
+        check_admin(email, club)
 
         # get the club
         club = Club.get(club_id)

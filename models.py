@@ -7,7 +7,7 @@ from google.appengine.api import users
 # key replicates name, but as a slug (letters/numbers only)
 class Club(db.Model):
     name = db.StringProperty()
-    # internet-friendly short name
+    # internet-friendly short name, also the key
     slug = db.StringProperty()
     # for a cron job that emails the super-admin new clubs
     new  = db.BooleanProperty(default=True)
@@ -73,7 +73,7 @@ class EmailToClub(db.Model):
     # switch to disable abuse/spam from different clubs
     enable = db.BooleanProperty(default=True)
     # admin
-    admin = db.BooleanProperty(default=True)
+    admin = db.BooleanProperty(default=False)
     # the key for linking through email
     admin_request_key = db.StringProperty()
     # when admin rights were requested: timeout for the request key
