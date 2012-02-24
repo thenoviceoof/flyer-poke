@@ -15,11 +15,6 @@ from lib import *
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
-# !!! this doesn't work any more, remove this particular thing
-# !!! might not matter after 
-# upper bound on number of API calls
-BOUND = 1000
-
 class Email(BaseHandler):
     def get(self):
         jobq = Job.all()
@@ -29,7 +24,7 @@ class Email(BaseHandler):
         flyers = 
         emails = set([j.email for j in jobs])
 
-        # ??? leave this in place?
+        # ???
         if len(emails) > BOUND:
             # figure out which emails to include b/c they're new
             init_flyers = [j.flyer for j in jobs if not(j.flyer.last_sent_date)]

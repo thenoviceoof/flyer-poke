@@ -20,7 +20,7 @@ use_library('django', '0.96')
 from models import Flyer, Job, Email, Token, Club
 from models import TokenToClub, EmailToClub
 from lib import *
-from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX
+from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX, GOOGLE_LINK_MSG
 
 ################################################################################
 # utility fns
@@ -96,6 +96,8 @@ class Index(BaseHandler):
                 session.terminate()
                 self.redirect("/")
                 return
+            if not(token_user.user):
+                add_notify("Notice", GOOGLE_LINK_MSG)
             clubrefs = token_user.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
                      for c in prefetch_refprop(clubrefs, TokenToClub.club)]
@@ -115,6 +117,7 @@ class Index(BaseHandler):
                     # if so, log the user in, reroute them back to "/"
                     session["user"] = user_token.key().name()
                     self.redirect("/")
+                    return
             # otherwise, just display the frontpage
             admin_contact = "support@%s.appspotmail.com" % get_application_id()
             values = {"affiliation": AFFILIATION,
@@ -290,8 +293,28 @@ class ClubEdit(BaseHandler):
 class AttachGoogleAccount(BaseHandler):
     # for allowing expedient usage: auto-sign in users
     def get(self):
-        # !!!
-        self.redirect("/")
+        # get session, and user
+        session = get_current_session()
+        if session.is_active():
+            token = session["user"]
+            token_user = Token.get_by_key_name(token)
+            logging.info(str(token_user))
+            # make sure the user is here
+            if not(token_user):
+                session.terminate()
+                self.redirect("/")
+                return
+            # and now get the google user
+            user = users.get_current_user()
+            if user:
+                token_user.user = user
+                token_user.put()
+                self.redirect("/")
+            else:
+                self.redirect(users.create_login_url(self.request.uri))
+        else:
+            # he's not signed in
+            self.redirect("/")
     
 class StopClubMail(BaseHandler):
     def get(self, club_id, email_id):
@@ -322,6 +345,7 @@ class Logout(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
+     ('/attachgoogle', AttachGoogleAccount),
      ('/new-club', ClubNew), # new club
      ('/club/(.*)', ClubEdit), # club edit
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)
