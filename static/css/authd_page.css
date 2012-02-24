@@ -59,3 +59,16 @@ header#authd_head a#home:visited {
 .notification-title {
     font:bold 1.1em sans-serif;
 }
+
+/* ------------------------------------------------------------ */
+
+#return {
+    display:block;
+    margin:0 0;
+    text-align:left;
+    font:bold 1.1em sans-serif;
+    color:#555;
+}
+#return:visited {
+    color:#555;
+}
