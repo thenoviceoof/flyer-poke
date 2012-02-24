@@ -17,10 +17,10 @@ from google.appengine.dist import use_library
 use_library('django', '0.96')
 
 # other pieces to import
-from models import Flyer, Job, Email, Token, Club
-from models import TokenToClub, EmailToClub
+from models import Flyer, Job, Email, Club
+from models import EmailToClub
 from lib import *
-from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX, GOOGLE_LINK_MSG
+from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX
 
 ################################################################################
 # utility fns
@@ -63,6 +63,7 @@ def get_or_make(Obj, key_name):
         return (entity, made)
     return db.run_in_transaction(txn, key_name)
 
+# !!! change this
 def check_admin(club_id):
     """See if we have admin access to a certain club's pages"""
     session = get_current_session()
@@ -86,43 +87,40 @@ def check_admin(club_id):
 # either front page or choose organization
 class Index(BaseHandler):
     def get(self):
-        session = get_current_session()
-        if session.is_active():
-            # serve up the club list for the user
-            token = session["user"]
-            token_user = Token.get_by_key_name(token)
-            # make sure the token_user actually exists
-            if not(token_user):
-                session.terminate()
-                self.redirect("/")
+        user = users.get_current_user()
+        if user:
+            email_query = Email.all()
+            email_query.filter('user = ', user)
+            email = email_query.get()
+            # no email yet, let's make one
+            while not(email) or not(made):
+                email_key = generate_hash(str(user))
+                email, made = get_or_make(Email, email_key)
+            # check if we're linked yet
+            if not(email.user_enable):
+                values = {}
+                if email.email:
+                    values = {'email': email.email}
+                # display the email-linking page
+                self.response.out.write(template.render(
+                        "templates/user_link.html", values))
                 return
-            if not(token_user.user):
-                add_notify("Notice", GOOGLE_LINK_MSG)
-            clubrefs = token_user.clubs.fetch(20) # 20 chosen arbitrarily
+            # serve up the listing page
+            clubrefs = email.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
                      for c in prefetch_refprop(clubrefs, TokenToClub.club)]
             notifications = session.get("notify", None)
             values = {"clubs": clubs, "notifications": notifications}
             session["notify"] = None
             self.response.out.write(template.render("templates/orgs.html",
-                                                    values))
+                                                    values))            
         else:
-            # find out if signed in to google account
-            user = users.get_current_user()
-            if user:
-                # find out if the user is in the db or not
-                q = db.GqlQuery("SELECT * FROM Token WHERE user = :1", user)
-                user_token = q.get()
-                if user_token:
-                    # if so, log the user in, reroute them back to "/"
-                    session["user"] = user_token.key().name()
-                    self.redirect("/")
-                    return
             # otherwise, just display the frontpage
             admin_contact = "support@%s.appspotmail.com" % get_application_id()
             values = {"affiliation": AFFILIATION,
                       "sign_in_button": SIGNIN_TEXT,
-                      "contact_info": admin_contact}
+                      "contact_info": admin_contact,
+                      "login_url": users.create_login_url(self.request.uri)}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
