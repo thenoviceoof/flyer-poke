@@ -105,12 +105,12 @@ class Index(BaseHandler):
             email_query.filter('user = ', user)
             email = email_query.get()
             # if we're not already linked...
-            if not(email):
+            if not(email) and not(DEBUG):
                 # display the email-linking page
                 self.response.out.write(template.render(
                         "templates/user_link.html", {}))
                 return
-            if not(email.user_enable):
+            if not(email.user_enable) and not(DEBUG):
                 values = {}
                 if email.email:
                     values['email'] = email.email
@@ -192,6 +192,33 @@ class LinkEmail(BaseHandler):
         else:
             add_notify("Notice", "Sign in")
             self.redirect("/")
+
+# /linkemail/(\w+)
+class VerifyEmail(BaseHandler):
+    def get(self, token):
+        # find the email with the token
+        email_query = Email.all()
+        email_query.filter("user_request_key =", token)
+        email = email_query.get()
+        # no email, die
+        if not(email):
+            self.error(404)
+        # check the date, if it's late wipe it
+        if datetime.today() - email.user_request_time > timedelta(days=2):
+            email.user = None
+            email.user_request_key = None
+            email.user_request_time = None
+            email.put()
+            self.error(404)
+        # enable
+        email.user_enable = True
+        email.user_request_key = None
+        email.user_request_time = None
+        email.put()
+        add_notify("Notice", "Emails linked!")
+        self.redirect("/")
+
+# !!! do the user/email link
 
 class ClubNew(BaseHandler):
     def post(self):
@@ -284,6 +311,9 @@ class ClubEdit(BaseHandler):
             add_notify("Notice", "Not all emails added")
         self.redirect("/club/%s" % club.slug)
 
+# !!! do the club/email link
+
+################################################################################
 # non-admin stuff
 
 # upload flyer
