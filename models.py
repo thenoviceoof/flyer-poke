@@ -12,22 +12,22 @@ class Club(db.Model):
     # for a cron job that emails the super-admin new clubs
     new  = db.BooleanProperty(default=True)
 
-# token: unique identifier linked to clubs (OpenID or WIND)
-class Token(db.Model):
-    token = db.StringProperty()
-    # a google user, to allow auto sign in
-    user = db.UserProperty()
-
 ################################################################################
 # Flyer-sending-related models
 
 class Email(db.Model):
     # stores the hash in a easy to access place
     id = db.StringProperty()
-    # derp
     email = db.StringProperty()
     # either banhammer, or request to not have the service
     enable = db.BooleanProperty(default=True)
+    # if they have this, they've signed into the service
+    user = db.UserProperty()
+    user_enable = db.BooleanProperty(default=False)
+    # the key for linking through email
+    user_request_key = db.StringProperty()
+    # when admin rights were requested: timeout for the request key
+    user_request_time = db.DateTimeProperty()
 
 class Flyer(db.Model):
     # stores the hash in a easy to access place
@@ -64,11 +64,6 @@ class Job(db.Model):
 ################################################################################
 # Mappings
 
-# maps login tokens (admins) to clubs
-class TokenToClub(db.Model):
-    token = db.ReferenceProperty(Token, required=True, collection_name="clubs")
-    club = db.ReferenceProperty(Club, required=True, collection_name="tokens")
-
 # maps emails to clubs
 class EmailToClub(db.Model):
     email = db.ReferenceProperty(Email, required=True, collection_name="clubs")
@@ -77,3 +72,9 @@ class EmailToClub(db.Model):
     message = db.StringProperty()
     # switch to disable abuse/spam from different clubs
     enable = db.BooleanProperty(default=True)
+    # admin
+    admin = db.BooleanProperty(default=True)
+    # the key for linking through email
+    admin_request_key = db.StringProperty()
+    # when admin rights were requested: timeout for the request key
+    admin_request_time = db.DateTimeProperty()
