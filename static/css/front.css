@@ -29,6 +29,15 @@ p#notice {
     font-size:2em;
 }
 
+/* ---------------------------------------- */
+
+#email-link {
+    width:20em;
+    margin:1em;
+    padding:0.2em;
+    font:1.5em sans-serif;
+}
+
 /* -------------------------------------------------- */
 
 #about {

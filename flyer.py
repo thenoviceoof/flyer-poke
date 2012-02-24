@@ -20,7 +20,7 @@ use_library('django', '0.96')
 from models import Flyer, Job, Email, Club
 from models import EmailToClub
 from lib import *
-from config import AFFILIATION, SIGNIN_TEXT, DEBUG, EMAIL_SUFFIX
+from config import AFFILIATION, DEBUG, EMAIL_SUFFIX
 
 ################################################################################
 # utility fns
@@ -84,6 +84,7 @@ def check_admin(club_id):
 
 ################################################################################
 
+# /
 # either front page or choose organization
 class Index(BaseHandler):
     def get(self):
@@ -123,6 +124,10 @@ class Index(BaseHandler):
                       "login_url": users.create_login_url(self.request.uri)}
             self.response.out.write(template.render("templates/index.html",
                                                     values))
+
+# /linkemail
+class LinkEmail(BaseHandler):
+    pass
 
 # upload flyer
 class Flyer(BaseHandler):
@@ -290,32 +295,6 @@ class ClubEdit(BaseHandler):
         self.redirect("/club/%s" % club.slug)
 
 # !!! remove emails w/ AJAX?
-
-class AttachGoogleAccount(BaseHandler):
-    # for allowing expedient usage: auto-sign in users
-    def get(self):
-        # get session, and user
-        session = get_current_session()
-        if session.is_active():
-            token = session["user"]
-            token_user = Token.get_by_key_name(token)
-            logging.info(str(token_user))
-            # make sure the user is here
-            if not(token_user):
-                session.terminate()
-                self.redirect("/")
-                return
-            # and now get the google user
-            user = users.get_current_user()
-            if user:
-                token_user.user = user
-                token_user.put()
-                self.redirect("/")
-            else:
-                self.redirect(users.create_login_url(self.request.uri))
-        else:
-            # he's not signed in
-            self.redirect("/")
     
 class StopClubMail(BaseHandler):
     def get(self, job_id):
@@ -349,7 +328,6 @@ class Logout(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
-     ('/attachgoogle', AttachGoogleAccount),
      ('/new-club', ClubNew), # new club
      ('/club/(.*)', ClubEdit), # club edit
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)

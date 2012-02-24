@@ -5,8 +5,14 @@
 
 <p id="blurb">We need to confirm you're a student, so enter your UNI</p>
 
-<form id="" action="">
-  <input name="" type="text" />
-  <button>Confirm</button>
+<form id="linkemailform" name="linkemailform" action="/linkemail">
+  <input id="email-link" name="email" type="text" /><br/>
+  <button id="signin-button">Send Confirmation Email</button>
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+document.getElementById('email-link').focus();
+</script>
 {% endblock %}
