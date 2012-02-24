@@ -172,16 +172,11 @@ class Flyer(BaseHandler):
 
 class Download(BaseHandler):
     # don't allow "anon" downloads
-    def get(self, flyer_id, email_id):
-        flyer = Flyer.get(flyer_id)
-        email = Email.get(email_id)
-        q = Job.all()
-        q.filter("email =", email)
-        q.filter("flyer =", flyer)
-        job = q.get()
-
+    def get(self, job_id):
+        job = Job.get(job_id)
+        flyer = job.flyer
         if flyer.flyer:
-            if job.state < DOWNLOADED:
+            if job.state == INIT:
                 job.state = DOWNLOADED
                 job.put()
             self.response.headers['Content-Type'] = "application/pdf"
@@ -193,19 +188,13 @@ class Download(BaseHandler):
 
 class Done(BaseHandler):
     # means user is done
-    def get(self, flyer_id, email_id):
-        flyer = Flyer.get(flyer_id)
-        email = Email.get(email_id)
+    def get(self, job_id):
+        job = Job.get(job_id)
 
-        q = Job.all()
-        q.filter("email =", email)
-        q.filter("flyer =", flyer)
-        job = q.get()
         if job:
             job.state = DONE
             job.put()
-            self.response.out.write(template.render("templates/finish.html",
-                                                    {}))
+            self.response.out.write(template.render("templates/finish.html",{}))
         else:
             self.error(404)
 
@@ -336,8 +325,8 @@ application = webapp.WSGIApplication(
      ('/new-club', ClubNew), # new club
      ('/club/(.*)', ClubEdit), # club edit
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)
-     ('/pdf/(\d*)/(\d*)', Download), # get flyer for certain person
-     ('/done/(\d*)/(.*)', Done), 
+     ('/pdf/(.*)', Download), # get flyer for certain person (job)
+     ('/done/(.*)', Done), # toggle done for certain person (job)
      ('/stop/(.*)/(.*)', StopClubMail), # stop email from a club
      ('/stop/(.*)', StopAllMail), # stop all traffic to email
      ('/logout', Logout),
