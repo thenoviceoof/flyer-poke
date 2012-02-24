@@ -24,6 +24,7 @@ class Token(db.Model):
 class Email(db.Model):
     # stores the hash in a easy to access place
     id = db.StringProperty()
+    # derp
     email = db.StringProperty()
     # either banhammer, or request to not have the service
     enable = db.BooleanProperty(default=True)

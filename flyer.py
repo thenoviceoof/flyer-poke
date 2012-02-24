@@ -152,6 +152,7 @@ class Flyer(BaseHandler):
             # randomly generate a flyer key
             flyer_key = generate_hash(club_id)[:6]
             flyer, made = get_or_make(Flyer, flyer_key)
+        flyer.id = flyer_key
         name = self.request.get("name")
         # check if the filename is a pdf
         if name[-3:] != "pdf":
@@ -265,8 +266,12 @@ class ClubEdit(BaseHandler):
         for email in emails:
             # add a suffix
             email += EMAIL_SUFFIX
-            # don't use hashes for emails, never access anyways
-            email_obj = Email.get_or_insert(email)
+            # use a hash for emails, accessed when deleting
+            email_obj, made = None, None
+            while not(email_obj) or not(made):
+                # randomly generate a key
+                email_key = generate_hash(email)[:8]
+                email_obj, made = get_or_make(Flyer, flyer_key)
             if not(email_obj.email):
                 email_obj.email = email
                 email_obj.put()
