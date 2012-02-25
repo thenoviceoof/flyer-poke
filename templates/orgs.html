@@ -25,7 +25,7 @@
         {% for flyer in club.flyers %}
         <li>
           <span class="flyer-name">{{ flyer.name }}</span>
-          <span class="">{{ flyer.event_date }}</span>
+          <span class="">{{ flyer.event_date|date:"Y/m/d" }}</span>
         </li>
         {% endfor %}
       </ul>

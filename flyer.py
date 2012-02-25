@@ -489,19 +489,25 @@ class FlyerUpload(BaseHandler):
             flyer_key = generate_hash(club_id)[:10]
             flyer, made = get_or_make(Flyer, flyer_key)
         flyer.id = flyer_key
-        # get the file, break it up
+        # get the parameters
         file_obj = self.request.POST["flyer"]
-        flyer_name = file_obj.filename
+        file_name = file_obj.filename
+        flyer_name = self.request.get("name")
+        event_date = self.request.get("date")
+        if not(flyer_name):
+            flyer_name = file_name[:-4]
         pdf = self.request.get("flyer")
         # check if the filename is a pdf
-        if flyer_name[-3:] != "pdf":
+        if file_name[-3:] != "pdf":
             add_notify("Error", "File is not a pdf")
             self.redirect("/flyer/%s" % club.slug)
             return
         # !!! replace with a blobstore ref
-        flyer.name = flyer_name[:-4]
         flyer.flyer = db.Blob(pdf)
+        flyer.name = flyer_name
         flyer.club = club
+        flyer.upload_date = datetime.today()
+        flyer.event_date = datetime.strptime(event_date, "%Y/%m/%d")
         flyer.put()
 
         # make a bunch of jobs from the club and flyer

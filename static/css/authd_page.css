@@ -62,13 +62,18 @@ header#authd_head a#home:visited {
 
 /* ------------------------------------------------------------ */
 
-#return {
+#return, #finish-return {
     display:block;
     margin:0 0;
     text-align:left;
     font:bold 1.1em sans-serif;
     color:#555;
 }
-#return:visited {
+#return:visited, #finish-return:visited {
     color:#555;
+}
+
+#finish-return {
+    margin:auto 0;
+    text-align:left;
 }
