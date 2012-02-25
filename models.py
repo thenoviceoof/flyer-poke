@@ -1,4 +1,5 @@
 from google.appengine.ext import db
+from google.appengine.ext import blobstore
 from google.appengine.api import users
 
 ################################################################################
@@ -36,8 +37,8 @@ class Flyer(db.Model):
     club = db.ReferenceProperty(Club)
     # human-readable handle - used in nag emails
     name = db.StringProperty()
-    # !!! change to blobstore, possibly in branch
-    flyer = db.BlobProperty()
+    # keeps the blobstore key around
+    flyer = blobstore.BlobReferenceProperty()
     # whether the flyer has active jobs or not
     active = db.BooleanProperty(default=True)
     # count how many times the jobs have been renewed (aka monday)

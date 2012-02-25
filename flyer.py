@@ -1,7 +1,11 @@
 from google.appengine.ext import db
 from google.appengine.ext import webapp
+from google.appengine.ext import blobstore
+
 from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.webapp.util import run_wsgi_app
+
 from google.appengine.api import users
 from google.appengine.api.app_identity import get_application_id
 from google.appengine.api import mail
@@ -455,8 +459,9 @@ class DeleteEmail(BaseHandler):
 ################################################################################
 # non-admin stuff
 
+# /flyer/(\w+)
 # upload flyer
-class FlyerUpload(BaseHandler):
+class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
     # serves up the flyer upload form
     def get(self, club_id):
         # check credentials
@@ -470,7 +475,10 @@ class FlyerUpload(BaseHandler):
         session = get_current_session()
         if session:
             values["notifications"] = session["notify"]
-            session["notify"] = None        
+            session["notify"] = None
+        # create a blobstore url
+        upload_url = blobstore.create_upload_url('/flyer/%s' % club.slug)
+        values["upload_url"] = upload_url
         self.response.out.write(template.render("templates/upload.html", values))
 
     # handles the flyer upload
@@ -496,14 +504,16 @@ class FlyerUpload(BaseHandler):
         event_date = self.request.get("date")
         if not(flyer_name):
             flyer_name = file_name[:-4]
-        pdf = self.request.get("flyer")
         # check if the filename is a pdf
         if file_name[-3:] != "pdf":
             add_notify("Error", "File is not a pdf")
             self.redirect("/flyer/%s" % club.slug)
             return
-        # !!! replace with a blobstore ref
-        flyer.flyer = db.Blob(pdf)
+        # fetch the blobstore key, save it
+        upload = self.get_uploads("flyer")
+        logging.info(upload)
+        flyer.flyer = upload[0]
+        # set everything else
         flyer.name = flyer_name
         flyer.club = club
         flyer.upload_date = datetime.today()
@@ -522,7 +532,7 @@ class FlyerUpload(BaseHandler):
         # and write out the response
         self.response.out.write(template.render("templates/finish.html", {}))
 
-class Download(BaseHandler):
+class Download(blobstore_handlers.BlobstoreDownloadHandler):
     # don't allow "anon" downloads
     def get(self, job_id):
         job = Job.get_by_key_name(job_id)
@@ -531,10 +541,11 @@ class Download(BaseHandler):
             if job.state == INIT:
                 job.state = DOWNLOADED
                 job.put()
-            self.response.headers['Content-Type'] = "application/pdf"
-            self.response.headers['Content-Disposition'] = \
-                "attachment; filename=%s.pdf" % flyer.name
-            self.response.out.write(flyer.flyer)
+            # get the blobstore key, send it off
+            resource = flyer.flyer.key()
+            resource = str(urllib.unquote(resource))
+            blob_info = blobstore.BlobInfo.get(resource)
+            self.send_blob(blob_info)
         else:
             self.error(404)
 
@@ -594,11 +605,11 @@ application = webapp.WSGIApplication(
      # upload flyer
      ('/flyer/(\w+)', FlyerUpload),
      # end user interaction points
-     ('/pdf/(w+)', Download),
-     ('/done/(w+)', Done),
+     ('/pdf/(\w+)', Download),
+     ('/done/(\w+)', Done),
      # handling spam
-     ('/stop_club/(w+)', StopClubMail), # stop email from a club
-     ('/stop_all/(w+)', StopAllMail), # stop all traffic to email
+     ('/stop_club/(\w+)', StopClubMail), # stop email from a club
+     ('/stop_all/(\w+)', StopAllMail), # stop all traffic to email
      ],
     debug=DEBUG)
 
