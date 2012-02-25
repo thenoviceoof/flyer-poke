@@ -79,3 +79,16 @@ p#notice {
 .notification-title {
     font-weight:bold;
 }
+
+/* ------------------------------------------------------------ */
+
+#return {
+    display:block;
+    margin:0 0;
+    text-align:left;
+    font:bold 1.1em sans-serif;
+    color:#555;
+}
+#return:visited {
+    color:#555;
+}

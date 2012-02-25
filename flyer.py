@@ -113,6 +113,7 @@ class Index(BaseHandler):
                 self.response.out.write(template.render(
                         "templates/user_link.html", {}))
                 return
+            # !!! remove this eventually?
             if DEBUG:
                 email.user_enable = True
                 email.put()
@@ -129,6 +130,7 @@ class Index(BaseHandler):
                 self.response.out.write(template.render(
                         "templates/user_link.html", values))
                 return
+
             # otherwise, serve up the listing page
             clubrefs = email.clubs.fetch(20) # 20 chosen arbitrarily
             clubs = [c.club
@@ -458,6 +460,10 @@ class FlyerUpload(BaseHandler):
         club = Club.get_by_key_name(club_id)
 
         values = {"name": club.name, "slug": club.slug}
+        session = get_current_session()
+        if session:
+            values["notifications"] = session["notify"]
+            session["notify"] = None        
         self.response.out.write(template.render("templates/upload.html", values))
 
     # handles the flyer upload
@@ -467,9 +473,7 @@ class FlyerUpload(BaseHandler):
             add_notify("Error", "You do not have the appropriate permissions")
             self.redirect("/")
             return
-        user = users.get_current_user()
         club = Club.get_by_key_name(club_id)
-        email = get_email(user)
 
         # make a flyer
         flyer, made = None, None
@@ -478,20 +482,24 @@ class FlyerUpload(BaseHandler):
             flyer_key = generate_hash(club_id)[:10]
             flyer, made = get_or_make(Flyer, flyer_key)
         flyer.id = flyer_key
-        name = self.request.get("name")
+        # get the file, break it up
+        file_obj = self.request.POST["flyer"]
+        flyer_name = file_obj.filename
+        pdf = self.request.get("flyer")
         # check if the filename is a pdf
-        if name[-3:] != "pdf":
+        if flyer_name[-3:] != "pdf":
             add_notify("Error", "File is not a pdf")
             self.redirect("/flyer/%s" % club.slug)
             return
         # !!! replace with a blobstore ref
-        flyer.name = name[:-4]
-        pdf = self.request.get("flyer")
+        flyer.name = flyer_name[:-4]
         flyer.flyer = db.Blob(pdf)
         flyer.put()
 
         # make a bunch of jobs from the club and flyer
-        for email in club.emails:
+        emails = [e.email
+                  for e in prefetch_refprop(club.emails, EmailToClub.club)]
+        for email in emails:
             job = Job(id=generate_random_hash(str(email)),
                       flyer=flyer, email=email,
                       done = False, state=INIT)
