@@ -74,7 +74,3 @@ class EmailToClub(db.Model):
     enable = db.BooleanProperty(default=True)
     # admin
     admin = db.BooleanProperty(default=False)
-    # the key for linking through email
-    admin_request_key = db.StringProperty()
-    # when admin rights were requested: timeout for the request key
-    admin_request_time = db.DateTimeProperty()

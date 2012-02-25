@@ -151,7 +151,7 @@ class Index(BaseHandler):
             self.response.out.write(template.render("templates/index.html",
                                                     values))
 
-# /linkemail
+# /link/email
 class LinkEmail(BaseHandler):
     def post(self):
         user = users.get_current_user()
@@ -198,12 +198,13 @@ class LinkEmail(BaseHandler):
             msg.subject = "[Flyer] Verify your email address"
             msg.html    = template.render("templates/email_verify.html",
                                           {'verify_addr':verify_addr})
+            msg.send()
             self.redirect("/")
         else:
             add_notify("Notice", "Sign in")
             self.redirect("/")
 
-# /linkemail/(\w+)
+# /link/email/(\w+)
 class VerifyEmail(BaseHandler):
     def get(self, token):
         # find the email with the token
@@ -333,7 +334,7 @@ class ClubEdit(BaseHandler):
             query = EmailToClub.all()
             query.filter('email =', email_obj)
             query.filter('club =', club)
-            join = query.fetch(1)
+            join = query.get()
             if not(join):
                 join = EmailToClub(email=email_obj, club=club)
                 join.put()
@@ -345,19 +346,58 @@ class ClubEdit(BaseHandler):
             add_notify("Notice", "Not all emails added")
         self.redirect("/club/%s" % club.slug)
 
-# !!! do the club/email link
-# called through ajax
+# /club/(+w+)/admin/(\w+)
 class LinkAdmin(BaseHandler):
-    def post(self):
-        pass
+    def get(self, club_id, email_id):
+        # check credentials
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        user = users.get_current_user()
+        club = Club.get_by_key_name(club_id)
+        
+        # get the email to be admin-ified
+        email = Email.get_by_key_name(email_id)
+        if not(email):
+            add_notify("Error", "No email to be promoted!")
+            self.redirect("/club/%s" % club.slug)
+            return
+        # find the link, delete it
+        query = EmailToClub.all()
+        query.filter("email =", email)
+        query.filter("club =", club)
+        link = query.get()
+        if not(link):
+            add_notify("Error", "No email to be promoted!")
+            self.redirect("/club/%s" % club.slug)
+            return
+        # flip the admin bit
+        link.admin = not(link.admin)
+        link.put()
+        # send an email if you've just been promoted
+        if link.admin:
+            domain = "http://%s.appspot.com" % get_application_id()
+            msg = mail.EmailMessage()
+            fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
+            msg.sender  = "Flyer Guy <%s>" % fromaddr
+            msg.to      = email.email
+            msg.subject = "[Flyer] You've an admin of %s!" % club.name
+            msg.html    = template.render("templates/email_admin.html",
+                                          {"domain":domain,
+                                           "club":club.name,
+                                           "email":email.id})
+            try:
+                msg.send()
+            except apiproxy_errors.OverQuotaError, (message,):
+                # Log the error
+                add_notify("Error", "Could not send email")
+                logging.error("Could not send email")
+                logging.error(message)
+        self.redirect("/club/%s" % club.slug)
 
-# followed from an email
-class VerifyAdmin(BaseHandler):
-    def get(self, token):
-        pass
-
-# /club/\w+/delete/\w+
-# this is SO dumb, but I also don't feel like writing a DELETE method
+# /club/(\w+)/delete/(\w+)
+# using a get is SO dumb, but I also don't feel like writing a DELETE method
 class DeleteEmail(BaseHandler):
     def get(self, club_id, email_id):
         # check credentials
@@ -509,15 +549,16 @@ class Logout(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
-     ('/linkemail', LinkEmail),
+     ('/link/email', LinkEmail),
      ('/new-club', ClubNew), # new club
-     ('/club/(\w*)', ClubEdit), # club edit
+     ('/club/(\w+)', ClubEdit), # club edit
      ('/club/(\w+)/delete/(\w+)', DeleteEmail),
-     ('/flyer/(.*)', Flyer), # flyer upload (get/post)
-     ('/pdf/(.*)', Download), # get flyer for certain person (job)
-     ('/done/(.*)', Done), # toggle done for certain person (job)
-     ('/stop_club/(.*)', StopClubMail), # stop email from a club
-     ('/stop_all/(.*)', StopAllMail), # stop all traffic to email
+     ('/club/(\w+)/admin/(\w+)', LinkAdmin),
+     ('/flyer/(w+)', Flyer), # flyer upload (get/post)
+     ('/pdf/(w+)', Download), # get flyer for certain person (job)
+     ('/done/(w+)', Done), # toggle done for certain person (job)
+     ('/stop_club/(w+)', StopClubMail), # stop email from a club
+     ('/stop_all/(w+)', StopAllMail), # stop all traffic to email
      ('/logout', Logout),
      ],
     debug=DEBUG)

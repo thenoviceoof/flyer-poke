@@ -12,7 +12,7 @@
 <div id="emaillist">
   {% for email in emails %}
   <div class="email">
-    <a class="admin" href="/{{ email.0 }}">
+    <a class="admin" href="/club/{{ clubslug }}/admin/{{ email.0 }}">
       {% if email.1 %}
       Admin
       {% else %}
