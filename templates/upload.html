@@ -11,7 +11,7 @@
 <a id="return" href="/">↵ Return to organization list</a>
 
 <h3>For {{ name }}:</h3>
-<form action="/upload" method="post" enctype="multipart/form-data">
+<form action="/flyer/{{ slug }}" method="post" enctype="multipart/form-data">
   <!-- <h2 id="file-instructions">Drag n' Drop your Flyer here</h2> -->
   <h2>Step 1: Select PDF flyer</h2>
     <input id="file" type="file" name="flyer" />

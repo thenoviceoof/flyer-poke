@@ -174,6 +174,7 @@ class LinkEmail(BaseHandler):
             email_key = generate_hash(email_addr)[:10]
             email, made = get_or_make(Email, email_key)
             if not(email.email):
+                email.id = email_key
                 email.email = email_addr
                 email.put()
             # user already tied, don't allow transfers through this interface
@@ -381,6 +382,15 @@ class LinkAdmin(BaseHandler):
         # flip the admin bit
         link.admin = not(link.admin)
         link.put()
+        # make sure we have at least one admin
+        query = EmailToClub.all()
+        query.filter("club =", club)
+        query.filter("admin =", True)
+        admin_check = query.get()
+        if not(admin_check):
+            # reverse the admin
+            link.admin = True
+            link.put()
         # send an email if you've just been promoted
         if link.admin:
             domain = "http://%s.appspot.com" % get_application_id()
@@ -437,9 +447,21 @@ class DeleteEmail(BaseHandler):
 # non-admin stuff
 
 # upload flyer
-class Flyer(BaseHandler):
+class FlyerUpload(BaseHandler):
     # serves up the flyer upload form
     def get(self, club_id):
+        # check credentials
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        club = Club.get_by_key_name(club_id)
+
+        values = {"name": club.name, "slug": club.slug}
+        self.response.out.write(template.render("templates/upload.html", values))
+
+    # handles the flyer upload
+    def post(self, club_id):
         # check credentials
         if not(check_admin(club_id)):
             add_notify("Error", "You do not have the appropriate permissions")
@@ -449,38 +471,20 @@ class Flyer(BaseHandler):
         club = Club.get_by_key_name(club_id)
         email = get_email(user)
 
-        club = Club.get_by_key_name(club_id)
-
-        values = {"name": club.name}
-        self.response.out.write(template.render("templates/upload.html", values))
-
-    # handles the flyer upload
-    def post(self, club_id):
-        # check credentials
-        user = users.get_current_user()
-        if not(user):
-            add_notify("Error", "You're not signed in")            
-            self.redirect("/")
-            return
-        club = Club.get_by_key_name(club_id)
-        email = get_email(user)
-        check_admin(email, club)
-
-        # get the club
-        club = Club.get(club_id)
-
         # make a flyer
         flyer, made = None, None
         while not(flyer) or not(made):
             # randomly generate a flyer key
-            flyer_key = generate_hash(club_id)[:6]
+            flyer_key = generate_hash(club_id)[:10]
             flyer, made = get_or_make(Flyer, flyer_key)
         flyer.id = flyer_key
         name = self.request.get("name")
         # check if the filename is a pdf
         if name[-3:] != "pdf":
-            # !!! replace this with something more useful
-            raise Exception("File must be a PDF")
+            add_notify("Error", "File is not a pdf")
+            self.redirect("/flyer/%s" % club.slug)
+            return
+        # !!! replace with a blobstore ref
         flyer.name = name[:-4]
         pdf = self.request.get("flyer")
         flyer.flyer = db.Blob(pdf)
@@ -488,8 +492,9 @@ class Flyer(BaseHandler):
 
         # make a bunch of jobs from the club and flyer
         for email in club.emails:
-            job = Job(flyer=flyer, email=email, done = False,
-                      state=INIT)
+            job = Job(id=generate_random_hash(str(email)),
+                      flyer=flyer, email=email,
+                      done = False, state=INIT)
             job.put()
 
         # and write out the response
@@ -498,7 +503,7 @@ class Flyer(BaseHandler):
 class Download(BaseHandler):
     # don't allow "anon" downloads
     def get(self, job_id):
-        job = Job.get(job_id)
+        job = Job.get_by_key_name(job_id)
         flyer = job.flyer
         if flyer.flyer:
             if job.state == INIT:
@@ -514,7 +519,7 @@ class Download(BaseHandler):
 class Done(BaseHandler):
     # means user is done
     def get(self, job_id):
-        job = Job.get(job_id)
+        job = Job.get_by_key_name(job_id)
 
         if job:
             job.state = DONE
@@ -555,17 +560,23 @@ class Logout(BaseHandler):
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
+     # person handling
      ('/link/email', LinkEmail),
-     ('/new-club', ClubNew), # new club
-     ('/club/(\w+)', ClubEdit), # club edit
+     ('/logout', Logout),
+     # club editing
+     ('/new-club', ClubNew),
+     ('/club/(\w+)', ClubEdit),
+     # member management
      ('/club/(\w+)/delete/(\w+)', DeleteEmail),
      ('/club/(\w+)/admin/(\w+)', LinkAdmin),
-     ('/flyer/(w+)', Flyer), # flyer upload (get/post)
-     ('/pdf/(w+)', Download), # get flyer for certain person (job)
-     ('/done/(w+)', Done), # toggle done for certain person (job)
+     # upload flyer
+     ('/flyer/(\w+)', FlyerUpload),
+     # end user interaction points
+     ('/pdf/(w+)', Download),
+     ('/done/(w+)', Done),
+     # handling spam
      ('/stop_club/(w+)', StopClubMail), # stop email from a club
      ('/stop_all/(w+)', StopAllMail), # stop all traffic to email
-     ('/logout', Logout),
      ],
     debug=DEBUG)
 
