@@ -12,15 +12,15 @@
 <div id="emaillist">
   {% for email in emails %}
   <div class="email">
-    <a class="admin" href="javascript:adminEmail('{{ email.1 }};')">
-      {% if email.0 %}
+    <a class="admin" href="/{{ email.0 }}">
+      {% if email.1 %}
       Admin
       {% else %}
       Regular
       {% endif %}
     </a>
-    <span class="email-title">{{ email.1 }}</span>
-    <a class="delete-email" href="javascript:deleteEmail('{{ email.1 }};')">
+    <span class="email-title">{{ email.2 }}</span>
+    <a class="delete-email" href="/club/{{ clubslug }}/delete/{{ email.0 }}">
       Delete
     </a>
   </div>

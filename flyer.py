@@ -280,17 +280,20 @@ class ClubEdit(BaseHandler):
             return
         user = users.get_current_user()
         club = Club.get_by_key_name(club_id)
-        email = get_email(user)
 
         # prefetch the emails
         email_refs = club.emails
-        emails = [e.email.email
+        email_refs = [e for e in email_refs if e.enable]
+        emails = [e.email
                   for e in prefetch_refprop(email_refs, EmailToClub.email)]
+        email_addrs = [e.email for e in emails]
+        email_ids = [e.id for e in emails]
         admins = [e.admin for e in email_refs]
         messages = [e.message for e in email_refs]
-        email_info = zip(admins, emails, messages)
+        email_info = zip(email_ids, admins, email_addrs, messages)
         vals = {"emails": email_info,
-                "club": club.name}
+                "club": club.name,
+                "clubslug": club.slug}
         # get the notifications
         session = get_current_session()
         if session:
@@ -322,9 +325,10 @@ class ClubEdit(BaseHandler):
                 # randomly generate a key
                 email_key = generate_hash(email)[:10]
                 email_obj, made = get_or_make(Email, email_key)
-            if not(email_obj.email):
-                email_obj.email = email
-                email_obj.put()
+                if made:
+                    email_obj.email = email
+                    email_obj.id = email_key
+                    email_obj.put()
             # make sure this pair is unique
             query = EmailToClub.all()
             query.filter('email =', email_obj)
@@ -342,6 +346,46 @@ class ClubEdit(BaseHandler):
         self.redirect("/club/%s" % club.slug)
 
 # !!! do the club/email link
+# called through ajax
+class LinkAdmin(BaseHandler):
+    def post(self):
+        pass
+
+# followed from an email
+class VerifyAdmin(BaseHandler):
+    def get(self, token):
+        pass
+
+# /club/\w+/delete/\w+
+# this is SO dumb, but I also don't feel like writing a DELETE method
+class DeleteEmail(BaseHandler):
+    def get(self, club_id, email_id):
+        # check credentials
+        if not(check_admin(club_id)):
+            add_notify("Error", "You do not have the appropriate permissions")
+            self.redirect("/")
+            return
+        club = Club.get_by_key_name(club_id)
+
+        # get the email link to be deleted
+        email = Email.get_by_key_name(email_id)
+        if not(email):
+            add_notify("Error", "No email to be deleted!")
+            self.redirect("/club/%s" % club.slug)
+            return
+        # find the link, delete it
+        query = EmailToClub.all()
+        query.filter("email =", email)
+        query.filter("club =", club)
+        link = query.get()
+        if not(link):
+            add_notify("Error", "No email to be deleted!")
+            self.redirect("/club/%s" % club.slug)
+            return
+        link.delete()
+        # hail our success
+        add_notify("Notice", "Email deleted")
+        self.redirect("/club/%s" % club.slug)
 
 ################################################################################
 # non-admin stuff
@@ -433,8 +477,6 @@ class Done(BaseHandler):
         else:
             self.error(404)
 
-# !!! remove emails w/ AJAX?
-    
 class StopClubMail(BaseHandler):
     def get(self, job_id):
         pass
@@ -469,7 +511,8 @@ application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
      ('/linkemail', LinkEmail),
      ('/new-club', ClubNew), # new club
-     ('/club/(.*)', ClubEdit), # club edit
+     ('/club/(\w*)', ClubEdit), # club edit
+     ('/club/(\w+)/delete/(\w+)', DeleteEmail),
      ('/flyer/(.*)', Flyer), # flyer upload (get/post)
      ('/pdf/(.*)', Download), # get flyer for certain person (job)
      ('/done/(.*)', Done), # toggle done for certain person (job)
