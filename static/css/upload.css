@@ -1,6 +1,6 @@
 form {
-    width:26em;
-    margin:1em auto;
+    width:32em;
+    margin:0.5em auto;
     padding:1em;
     background-color:rgba(255, 255, 255, 0.5);
     border-radius:1em;
@@ -11,18 +11,30 @@ form h2 {
 }
 
 h3 {
-    margin:0.5em 0 0.5em 1em;
+    margin:0.2em 0 0.2em 1em;
     font:bold 1.5em sans-serif;
 }
 
+#event-name {
+    width:20em;
+    margin:0.5em;
+    padding:0.2em;
+    font-size:1.1em;
+}
+
+#datepicker {
+    padding:0.5em;
+    font-size:10pt;
+}
+
 input#file {
-    margin:1em;
+    margin:0.5em;
     font-size:1.3em;
 }
 
 input#submit {
     display:block;
-    margin:1em;
+    margin:0.4em;
     padding:0.4em;
     font-size:1.3em;
     text-align:center;
