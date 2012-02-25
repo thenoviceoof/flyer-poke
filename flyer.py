@@ -532,6 +532,7 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         # and write out the response
         self.response.out.write(template.render("templates/finish.html", {}))
 
+# /pdf/(\w+)
 class Download(blobstore_handlers.BlobstoreDownloadHandler):
     # don't allow "anon" downloads
     def get(self, job_id):
@@ -549,6 +550,7 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         else:
             self.error(404)
 
+# /done/(\w+)
 class Done(BaseHandler):
     # means user is done
     def get(self, job_id):

@@ -39,7 +39,7 @@ class Flyer(db.Model):
     name = db.StringProperty()
     # keeps the blobstore key around
     flyer = blobstore.BlobReferenceProperty()
-    # whether the flyer has active jobs or not
+    # whether the flyer's event_date has passed yet
     active = db.BooleanProperty(default=True)
     # count how many times the jobs have been renewed (aka monday)
     renewal = db.IntegerProperty()
