@@ -198,7 +198,13 @@ class LinkEmail(BaseHandler):
             msg.subject = "[Flyer] Verify your email address"
             msg.html    = template.render("templates/email_verify.html",
                                           {'verify_addr':verify_addr})
-            msg.send()
+            try:
+                msg.send()
+            except apiproxy_errors.OverQuotaError, (message,):
+                # Log the error
+                add_notify("Error", "Could not send email")
+                logging.error("Could not send email")
+                logging.error(message)
             self.redirect("/")
         else:
             add_notify("Notice", "Sign in")
