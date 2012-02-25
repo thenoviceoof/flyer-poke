@@ -46,6 +46,25 @@ a.club-edit:visited {
 }
 
 /* ------------------------------------------------------------ */
+/* club flyers */
+
+.clubcont {
+    padding-left:2em;
+    color:#555;
+}
+
+.flyer-list {
+}
+.flyer-list li {
+    padding:0.2em 0;
+}
+.flyer-name {
+    display:inline-block;
+    width:8em;
+    overflow:hidden;
+}
+
+/* ------------------------------------------------------------ */
 
 #newwrapper {
     margin-top:1em;

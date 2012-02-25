@@ -136,7 +136,14 @@ class Index(BaseHandler):
             clubs = [c.club
                      for c in prefetch_refprop(clubrefs, EmailToClub.club)
                      if check_admin(c.club.slug)]
-            values = {"clubs": clubs}
+            club_hash = []
+            for c in clubs:
+                query = c.flyer_set
+                #query.filter("active =", True)
+                flyers = query.fetch(10)
+                club_hash.append({"name": c.name, "slug": c.slug,
+                                  "flyers": flyers})
+            values = {"clubs": club_hash}
             # try getting notifications
             session = get_current_session()
             if session:
@@ -494,6 +501,7 @@ class FlyerUpload(BaseHandler):
         # !!! replace with a blobstore ref
         flyer.name = flyer_name[:-4]
         flyer.flyer = db.Blob(pdf)
+        flyer.club = club
         flyer.put()
 
         # make a bunch of jobs from the club and flyer

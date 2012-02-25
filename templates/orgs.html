@@ -13,11 +13,26 @@
   <div class="madeclub club">
     <header>
       <h2>
-	<a class="club-name" href="/flyer/{{ club.slug }}">{{ club.name }}</a>
+	<a class="club-name" href="/flyer/{{ club.slug }}">
+          {{ club.name }}
+        </a>
       </h2>
       <a class="club-edit" href="/club/{{ club.slug }}">edit</a>
     </header>
-    And a fuck-ton of metrics/flyer links here
+    <div class="clubcont">
+      {% if club.flyers %}
+      <ul class="flyer-list">
+        {% for flyer in club.flyers %}
+        <li>
+          <span class="flyer-name">{{ flyer.name }}</span>
+          <span class="">{{ flyer.event_date }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      No flyers yet
+      {% endif %}
+    </div>
   </div>
   {% endfor %}
   {% if not clubs %}
