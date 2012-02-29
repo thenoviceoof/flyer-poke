@@ -1,3 +1,6 @@
+from google.appengine.dist import use_library
+use_library('django', '1.2')
+
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext import blobstore
@@ -17,10 +20,6 @@ import logging
 from datetime import datetime
 
 from gaesessions import get_current_session
-
-# to shut gae up
-from google.appengine.dist import use_library
-use_library('django', '0.96')
 
 # other pieces to import
 from models import Flyer, Job, Email, Club
