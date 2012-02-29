@@ -452,7 +452,7 @@ class DeleteEmail(BaseHandler):
             add_notify("Error", "No email to be deleted!")
             self.redirect("/club/%s" % club.slug)
             return
-        # find the link, delete it
+        # find the link
         query = EmailToClub.all()
         query.filter("email =", email)
         query.filter("club =", club)
@@ -461,6 +461,9 @@ class DeleteEmail(BaseHandler):
             add_notify("Error", "No email to be deleted!")
             self.redirect("/club/%s" % club.slug)
             return
+        # make sure it's not the last admin
+        # !!!
+        # delete the link
         link.delete()
         # hail our success
         add_notify("Notice", "Email deleted")
