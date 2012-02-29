@@ -462,7 +462,13 @@ class DeleteEmail(BaseHandler):
             self.redirect("/club/%s" % club.slug)
             return
         # make sure it's not the last admin
-        # !!!
+        query = EmailToClub.all()
+        query.filter("club =", club)
+        admins = query.fetch(2)
+        if len(admins) < 2 and link.admin:
+            add_notify("Error", "Will not delete the last club admin")
+            self.redirect("/club/%s" % club.slug)
+            return
         # delete the link
         link.delete()
         # hail our success
