@@ -18,6 +18,7 @@ import time
 import re
 import logging
 from datetime import datetime
+from operator import itemgetter
 
 from gaesessions import get_current_session
 
@@ -303,14 +304,24 @@ class ClubEdit(BaseHandler):
 
         # prefetch the emails
         email_refs = club.emails
-        email_refs = [e for e in email_refs if e.enable]
+        email_refs = [e for e in email_refs if e.enable] # check enabled
         emails = [e.email
                   for e in prefetch_refprop(email_refs, EmailToClub.email)]
         email_addrs = [e.email for e in emails]
         email_ids = [e.id for e in emails]
-        admins = [e.admin for e in email_refs]
+        status = []
+        for eref in email_refs:
+            if not(eref.enable):
+                status.append(-1)
+            elif eref.admin:
+                status.append(1)
+            else:
+                status.append(0)
         messages = [e.message for e in email_refs]
-        email_info = zip(email_ids, admins, email_addrs, messages)
+        email_info = zip(email_ids, status, email_addrs, messages)
+        # sort on status (admin first, opt-out last)
+        email_info.sort(key=itemgetter(1), reverse=True)
+        # pack up the values
         vals = {"emails": email_info,
                 "club": club.name,
                 "clubslug": club.slug}
