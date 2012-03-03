@@ -59,6 +59,8 @@ class Job(db.Model):
     email = db.ReferenceProperty(Email, collection_name="jobs")
     # current job renewal
     renewal = db.IntegerProperty(default=0)
+    # whether the current renewal is active
+    active = db.BooleanProperty(default=True)
     # reporting: init (0), downloaded (1), done (2), error (-1)
     # however, error is never used?
     state = db.IntegerProperty(default=0)

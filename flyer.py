@@ -19,6 +19,7 @@ import re
 import logging
 from datetime import datetime
 from operator import itemgetter
+import urllib
 
 from gaesessions import get_current_session
 
@@ -553,11 +554,17 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         emails = [e.email
                   for e in prefetch_refprop(club.emails, EmailToClub.club)]
         for email in emails:
-            job = Job(id=generate_random_hash(str(email)),
-                      flyer=flyer, email=email,
-                      done = False, state=INIT)
-            job.put()
-
+            # generate a key
+            job_obj, made = None, None
+            while not(job_obj) or not(made):
+                # randomly generate a key
+                job_key = generate_random_hash(str(email))
+                job_obj, made = get_or_make(Job, job_key)
+                if made:
+                    job_obj.id = job_key
+                    job_obj.flyer = flyer
+                    job_obj.email = email
+                    job_obj.put()
         # and write out the response
         self.response.out.write(template.render("templates/finish.html", {}))
 
@@ -566,6 +573,8 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
     # don't allow "anon" downloads
     def get(self, job_id):
         job = Job.get_by_key_name(job_id)
+        if not job:
+            self.error(404)
         flyer = job.flyer
         if flyer.flyer:
             if job.state == INIT:
@@ -573,9 +582,8 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
                 job.put()
             # get the blobstore key, send it off
             resource = flyer.flyer.key()
-            resource = str(urllib.unquote(resource))
             blob_info = blobstore.BlobInfo.get(resource)
-            self.send_blob(blob_info)
+            self.send_blob(blob_info, save_as=flyer.name+".pdf")
         else:
             self.error(404)
 
@@ -587,6 +595,7 @@ class Done(BaseHandler):
 
         if job:
             job.state = DONE
+            # don't set active, it sets to False at the end of the week
             job.put()
             self.response.out.write(template.render("templates/finish.html",{}))
         else:
