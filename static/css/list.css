@@ -70,7 +70,7 @@ a.club-edit:visited {
 }
 .flyer-track {
     display:inline-block;
-    width:8em;
+    width:9em;
 }
 
 .sparkgraph {
@@ -79,8 +79,10 @@ a.club-edit:visited {
 }
 .sparkgraph-atom {
     display:inline-block;
-    width:20px;
-    background-color:green;
+    width:16px;
+    margin:0 2px;
+    background-color:#5A5;
+    border-bottom:1px gray solid;
 }
 
 /* ------------------------------------------------------------ */

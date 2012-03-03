@@ -71,19 +71,30 @@
     // get the data
     var data{{ flyer.id }} = [
       {% for job in flyer.done_jobs %}
-        {"name": {{ job.email.email }},
-         "update": {{ job.last_updated|date }} },
+        {"name": "{{ job.email.email }}",
+         "update": new Date("{{ job.last_updated|date }}") },
       {% endfor %}
     ];
     // bin the data
+    var bin{{ flyer.id }} = [[], [], [], [], [], [], []];
+    for(var d in data{{ flyer.id }}) {
+      var data = data{{ flyer.id }}[d];
+      bin{{ flyer.id }}[(data.update.getDay() - 1 + 7) % 7].push(data);
+    }
+    var mx{{ flyer.id }} = d3.max(bin{{ flyer.id }}, function(d){
+      return d.length;
+    });
+
     chart{{ flyer.id }}.selectAll("div")
-      .data([1, 2, 3, 4, 5, 6, 7])
+      .data(bin{{ flyer.id }})
       .enter().append("div")
       .attr("class", "sparkgraph-atom")
       .attr("title", function(d) {
-        return d;
+        return $.map(d, function(elem, ind){ return elem.name; }).join(", ");
       })
-      .style("height", function(d){ return d.length + "px"; });
+      .style("height", function(d){
+        return ($(".sparkgraph").height()-1)*d.length/mx{{ flyer.id }} + "px";
+      });
   {% endfor %}
   {% endfor %}
 </script>
