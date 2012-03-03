@@ -17,6 +17,15 @@ from lib import *
 
 class Email(BaseHandler):
     def get(self):
+        # is it a week day?
+
+        # if so, get all the active jobs
+        # check if the jobs are past their event date
+        # send the emails: bin jobs by email, send
+
+        # if it's sunday, deprecate the jobs, repopulate
+        
+
         jobq = Job.all()
         # get both init and downloaded states
         jobs = list(jobq.filter("done =", False))
