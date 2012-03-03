@@ -27,7 +27,7 @@
           <span class="flyer-name">{{ flyer.name }}</span>
           <span class="flyer-date">{{ flyer.date|date:"Y/m/d" }}</span>
           <span class="flyer-track">
-            dl: {{ flyer.dl_jobs|length }}
+            dl: {{ flyer.dl_jobs|length }},
             Done: {{ flyer.done_jobs|length }}/{{ flyer.jobs|length }}
           </span>
           <span class="sparkgraph-cont">

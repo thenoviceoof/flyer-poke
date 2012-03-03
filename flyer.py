@@ -13,6 +13,10 @@ from google.appengine.api import users
 from google.appengine.api.app_identity import get_application_id
 from google.appengine.api import mail
 
+# get us the humanize template
+template.register_template_library(
+    'django.contrib.humanize.templatetags.humanize')
+
 import hashlib
 import time
 import re
@@ -566,7 +570,8 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
                     job_obj.email = email
                     job_obj.put()
         # and write out the response
-        self.response.out.write(template.render("templates/finish.html", {}))
+        self.response.out.write(template.render("templates/finish_upload.html",
+                                                {}))
 
 # /pdf/(\w+)
 class Download(blobstore_handlers.BlobstoreDownloadHandler):
@@ -593,11 +598,24 @@ class Done(BaseHandler):
     def get(self, job_id):
         job = Job.get_by_key_name(job_id)
 
-        if job:
+        if job and job.state != DONE and job.active == True:
             job.state = DONE
-            # don't set active, it sets to False at the end of the week
             job.put()
-            self.response.out.write(template.render("templates/finish.html",{}))
+            # count the number of jobs attached to this flyer
+            job_query = Job.all()
+            job_query.filter("flyer =", job.flyer)
+            job_query.filter("active =", True)
+            total_jobs = job_query.count()
+            # count the number of jobs done so far
+            job_query = Job.all()
+            job_query.filter("flyer =", job.flyer)
+            job_query.filter("active =", True)
+            job_query.filter("state =", DONE)
+            done_jobs = job_query.count()
+            # write out
+            self.response.out.write(template.render("templates/finish.html",
+                                                    {"total": total_jobs,
+                                                     "done": done_jobs}))
         else:
             self.error(404)
 
