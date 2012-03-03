@@ -25,7 +25,11 @@
         {% for flyer in club.flyers %}
         <li>
           <span class="flyer-name">{{ flyer.name }}</span>
-          <span class="">{{ flyer.event_date|date:"Y/m/d" }}</span>
+          <span class="flyer-date">{{ flyer.date|date:"Y/m/d" }}</span>
+          <span class="track-track">
+            dl: {{ flyer.dl_jobs|length }}
+            Done: {{ flyer.done_jobs|length }}/{{ flyer.jobs|length }}
+          </span>
         </li>
         {% endfor %}
       </ul>

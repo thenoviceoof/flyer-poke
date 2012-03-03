@@ -143,8 +143,15 @@ class Index(BaseHandler):
             club_hash = []
             for c in clubs:
                 query = c.flyer_set
-                #query.filter("active =", True)
-                flyers = query.fetch(10)
+                query.filter("active =", True)
+                flyer_objs = query.fetch(10)
+                # and go fetch all the jobs
+                flyers = [{"name": f.name,
+                           "date": f.event_date,
+                           "jobs": [j for j in f.jobs],
+                           "dl_jobs": [j for j in f.jobs if j.state==DOWNLOADED],
+                           "done_jobs": [j for j in f.jobs if j.state==DONE]}
+                          for f in flyer_objs]
                 club_hash.append({"name": c.name, "slug": c.slug,
                                   "flyers": flyers})
             values = {"clubs": club_hash}

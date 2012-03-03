@@ -58,10 +58,19 @@ a.club-edit:visited {
 .flyer-list li {
     padding:0.2em 0;
 }
+
 .flyer-name {
     display:inline-block;
     width:8em;
     overflow:hidden;
+}
+.flyer-date {
+    display:inline-block;
+    width:6em;
+}
+.flyer-track {
+    display:inline-block;
+    width:8em;
 }
 
 /* ------------------------------------------------------------ */
