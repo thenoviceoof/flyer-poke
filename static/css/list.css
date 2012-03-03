@@ -73,6 +73,16 @@ a.club-edit:visited {
     width:8em;
 }
 
+.sparkgraph {
+    display:inline-block;
+    width:140px;
+}
+.sparkgraph-atom {
+    display:inline-block;
+    width:20px;
+    background-color:green;
+}
+
 /* ------------------------------------------------------------ */
 
 #newwrapper {

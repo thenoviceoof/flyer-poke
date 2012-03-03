@@ -26,9 +26,14 @@
         <li>
           <span class="flyer-name">{{ flyer.name }}</span>
           <span class="flyer-date">{{ flyer.date|date:"Y/m/d" }}</span>
-          <span class="track-track">
+          <span class="flyer-track">
             dl: {{ flyer.dl_jobs|length }}
             Done: {{ flyer.done_jobs|length }}/{{ flyer.jobs|length }}
+          </span>
+          <span class="sparkgraph-cont">
+            Mon
+            <span id="flyer-{{ flyer.id }}" class="sparkgraph"></span>
+            Sun
           </span>
         </li>
         {% endfor %}
@@ -56,7 +61,31 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+        type="text/javascript"></script>
+<script src="/static/js/d3.v2.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  {% for club in clubs %}
+  {% for flyer in club.flyers %}
+    var chart{{ flyer.id }} = d3.select("#flyer-{{flyer.id}}");
+    // get the data
+    var data{{ flyer.id }} = [
+      {% for job in flyer.done_jobs %}
+        {"name": {{ job.email.email }},
+         "update": {{ job.last_updated|date }} },
+      {% endfor %}
+    ];
+    // bin the data
+    chart{{ flyer.id }}.selectAll("div")
+      .data([1, 2, 3, 4, 5, 6, 7])
+      .enter().append("div")
+      .attr("class", "sparkgraph-atom")
+      .attr("title", function(d) {
+        return d;
+      })
+      .style("height", function(d){ return d.length + "px"; });
+  {% endfor %}
+  {% endfor %}
 </script>
 <script type="text/javascript">
   $("#addnew").click(function() {
