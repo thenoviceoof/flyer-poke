@@ -61,7 +61,8 @@ a.club-edit:visited {
 
 .flyer-name {
     display:inline-block;
-    width:8em;
+    width:12em;
+    height:1em;
     overflow:hidden;
 }
 .flyer-date {

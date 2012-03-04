@@ -185,7 +185,7 @@ class LinkEmail(BaseHandler):
             if not(email.user):
                 email.user = user
             # generate a new key
-            email.user_request_key = generate_hash(str(email))
+            email.user_request_key = generate_random_hash(str(email))
             email.user_request_time = datetime.today()
             email.put()
 
@@ -510,7 +510,7 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         flyer, made = None, None
         while not(flyer) or not(made):
             # randomly generate a flyer key
-            flyer_key = generate_hash(club_id)[:10]
+            flyer_key = generate_random_hash(club_id)[:10]
             flyer, made = get_or_make(Flyer, flyer_key)
         flyer.id = flyer_key
         # get the parameters
