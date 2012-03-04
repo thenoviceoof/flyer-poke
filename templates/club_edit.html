@@ -11,18 +11,18 @@
 <a id="return" href="/">↵ Return to organization list</a>
 <div id="emaillist">
   {% for email in emails %}
-  <div class="email">
-    <a class="admin" href="/club/{{ clubslug }}/admin/{{ email.0 }}">
-      {% if email.1 == 1 %}
-      Admin
+  <div class="email{% if email.1 == -1 %} emailoptout{% endif %}">
+      {% if email.1 == -1 %}
+      <a class="admin">Opted-Out</a>
       {% else %}
-        {% if email.1 == 0 %}
-        Regular
+      <a class="admin" href="/club/{{ clubslug }}/admin/{{ email.0 }}">
+        {% if email.1 == 1 %}
+        Admin
         {% else %}
-        Opt-out
+        Regular
         {% endif %}
+      </a>
       {% endif %}
-    </a>
     <span class="email-title">{{ email.2 }}</span>
     <a class="delete-email" href="/club/{{ clubslug }}/delete/{{ email.0 }}">
       Delete

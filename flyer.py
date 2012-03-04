@@ -291,7 +291,7 @@ class ClubEdit(BaseHandler):
 
         # prefetch the emails
         email_refs = club.emails
-        email_refs = [e for e in email_refs if e.enable] # check enabled
+        email_refs = [e for e in email_refs] # check enabled
         emails = [e.email
                   for e in prefetch_refprop(email_refs, EmailToClub.email)]
         email_addrs = [e.email for e in emails]
@@ -381,13 +381,17 @@ class LinkAdmin(BaseHandler):
             add_notify("Error", "No email to be promoted!")
             self.redirect("/club/%s" % club.slug)
             return
-        # find the link, delete it
+        # find the link to promote it
         query = EmailToClub.all()
         query.filter("email =", email)
         query.filter("club =", club)
         link = query.get()
         if not(link):
             add_notify("Error", "No email to be promoted!")
+            self.redirect("/club/%s" % club.slug)
+            return
+        if not link.enable:
+            add_notify("Error", "Can't promote a disabled email")
             self.redirect("/club/%s" % club.slug)
             return
         # flip the admin bit
@@ -632,7 +636,7 @@ class StopClubMail(BaseHandler):
         club = job.flyer.club
         email = job.email
         # update the email
-        email.updated_at = datetime.datetime.now()
+        email.updated_at = datetime.now()
         email.put()
         # find the email-club join
         join_query = EmailToClub.all()
@@ -640,7 +644,8 @@ class StopClubMail(BaseHandler):
         join_query.filter("club =", club)
         join = join_query.get()
         # do the delete
-        join.delete()
+        join.enable = False
+        join.put()
         # mark all the jobs inactive
         flyer_query = Flyer.all()
         flyer_query.filter("club =", club)
@@ -690,7 +695,8 @@ class StopAllMail(BaseHandler):
         joins = join_query.fetch(20)
         # do the delete
         for join in joins:
-            join.delete()
+            join.enable = False
+            join.put()
         # mark all the jobs inactive
         job_query = Job.all()
         job_query.filter("email =", email)
@@ -701,6 +707,8 @@ class StopAllMail(BaseHandler):
             job.put()
         self.response.out.write(template.render("templates/sorry.html", {}))
 
+################################################################################
+# routing
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
      # person handling

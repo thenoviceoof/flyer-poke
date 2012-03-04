@@ -25,6 +25,14 @@
     border-color: #2A3;
     background-color: #6D8;
 }
+.emailoptout:nth-child(odd) {
+    border-color: #555;
+    background-color: #AAA;
+}
+.emailoptout:nth-child(even) {
+    border-color: #555;
+    background-color: #AAA;
+}
 
 #noemails {
     margin:0.5em;
