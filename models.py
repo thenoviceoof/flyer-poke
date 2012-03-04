@@ -12,6 +12,8 @@ class Club(db.Model):
     slug = db.StringProperty()
     # for a cron job that emails the super-admin new clubs
     new  = db.BooleanProperty(default=True)
+    # timestamps
+    created_at = db.DateTimeProperty(auto_now_add=True)
 
 ################################################################################
 # Flyer-sending-related models
@@ -29,6 +31,8 @@ class Email(db.Model):
     user_request_key = db.StringProperty()
     # when admin rights were requested: timeout for the request key
     user_request_time = db.DateTimeProperty()
+    # timestamps
+    created_at = db.DateTimeProperty(auto_now_add=True)
 
 class Flyer(db.Model):
     # stores the hash in a easy to access place
@@ -47,8 +51,6 @@ class Flyer(db.Model):
     upload_date = db.DateTimeProperty(auto_now_add=True)
     last_sent_date = db.DateTimeProperty()
     event_date = db.DateTimeProperty()
-    # for multi-week runs: date, date, date (usually Monday)
-    restore_dates = db.StringProperty()
 
 # a many-many link between flyers and emails
 class Job(db.Model):
@@ -65,6 +67,8 @@ class Job(db.Model):
     # however, error is never used?
     state = db.IntegerProperty(default=0)
     last_updated = db.DateTimeProperty(auto_now_add=True)
+    # timestamps
+    created_at = db.DateTimeProperty(auto_now_add=True)
 
 ################################################################################
 # Mappings
@@ -79,3 +83,5 @@ class EmailToClub(db.Model):
     enable = db.BooleanProperty(default=True)
     # admin
     admin = db.BooleanProperty(default=False)
+    # timestamps
+    created_at = db.DateTimeProperty(auto_now_add=True)
