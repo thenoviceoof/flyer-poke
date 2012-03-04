@@ -9,14 +9,15 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.api.app_identity import get_application_id
 
-import datetime, time
+from datetime import datetime, tzinfo
+import time
 import logging
 
-from models import Flyer, Job, EmailToClub
+from models import Club, Flyer, Job, Email, EmailToClub
 from lib import *
-from config import TIMEZONE
+from config import TIMEZONE, ADMIN_EMAIL
 
-class CurrentTimeZone(datetime.tzinfo):
+class CurrentTimeZone(tzinfo):
     def utcoffset(self, dt):
         return datetime.timedelta(hours=TIMEZONE)
     def dst(self, dt):
@@ -24,7 +25,7 @@ class CurrentTimeZone(datetime.tzinfo):
     def tzname(self, dt):
         return "US/Eastern"
 
-class Email(BaseHandler):
+class EmailHandler(BaseHandler):
     def get(self):
         # is it a week day?
         current_date = datetime.datetime.now(CurrentTimeZone())
@@ -122,14 +123,53 @@ class Clean(BaseHandler):
         self.response.out.write(template.render("templates/task.html",
                                                 {"msg": "Removed old ones"}))
 
-# !!! new orgs, bandwidth/email usage
+# new orgs, bandwidth/email usage
 class SendAdminNotifications(BaseHandler):
     def get(self):
-        pass
+        timestamp = time.mktime(datetime.now().timetuple())-24*3600
+        yesterday = datetime.fromtimestamp(timestamp)
+        # get new clubs
+        club_query = Club.all()
+        club_query.filter("created_at >", yesterday)
+        new_clubs = club_query.fetch(20)
+        # get new emails
+        email_query = Email.all()
+        email_query.filter("created_at >", yesterday)
+        new_emails = email_query.fetch(100)
+        # get new flyers
+        flyer_query = Flyer.all()
+        flyer_query.filter("created_at >", yesterday)
+        new_flyers = flyer_query.fetch(50)
+        # get new EmailToClub
+        joint_query = EmailToClub.all()
+        joint_query.filter("created_at >", yesterday)
+        new_joints = joint_query.fetch(100)
+
+        # email sending pre-computation
+        fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
+        date = time.strftime("%Y/%m/%d")
+
+        # send the emails
+        msg = mail.EmailMessage(sender = "Flyer Guy <%s>" % fromaddr,
+                                to = ADMIN_EMAIL)
+        msg.subject = "[Flyer] Admin stats (%s)" % date
+        msg.html    = template.render("templates/email_stats.html",
+                                      {"clubs": new_clubs,
+                                       "emails": new_emails,
+                                       "flyers": new_flyers,
+                                       "joints": new_joints})
+        try:
+            msg.send()
+        except apiproxy_errors.OverQuotaError, (message,):
+            # Log the error.
+            logging.error("Could not send email")
+            logging.error(message)
+        self.response.out.write("Sent emails")        
 
 application = webapp.WSGIApplication(
-    [('/tasks/email', Email),
+    [('/tasks/email', EmailHandler),
      ('/tasks/clean', Clean),
+     ('/tasks/admin_stats', SendAdminNotifications)
      ],
     debug=True)
 

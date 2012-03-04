@@ -1,0 +1,21 @@
+<h1>New Clubs</h1>
+<ul>
+{% for club in clubs %}
+<li>{{ club.name }}</li>
+{% endfor %}
+</ul>
+
+<h1>New Emails</h1>
+{% for email in emails %}
+<li>{{ email.email }}</li>
+{% endfor %}
+
+<h1>New Flyers</h1>
+{% for flyer in flyers %}
+<li>{{ flyer.name }} by {{ flyer.club.name }}</li>
+{% endfor %}
+
+<h1>New Email/Club Joins</h1>
+{% for joint in joints %}
+<li>Join {{ joint.email.email }} and {{ joint.club.name }}</li>
+{% endfor %}
