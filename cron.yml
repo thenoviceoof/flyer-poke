@@ -1,9 +1,9 @@
 cron:
-- description: daily summary job
+- description: daily nag emails
   url: /tasks/email
-  schedule: every day 07:00
+  schedule: every day 08:00
   timezone: EST
-- description: cleaning out old entries
-  url: /tasks/clean
-  schedule: every day 06:00
+- description: daily summary of stats to the admin
+  url: /tasks/admin_stats
+  schedule: every day 07:00
   timezone: EST
