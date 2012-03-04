@@ -1,0 +1,30 @@
+{% extends "master.html" %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/css/front.css" />
+{% endblock %}
+
+{% block content %}
+<a href="/">
+  <img id="logo" src="/static/img/logo.png" title="Floke" alt="Floke" />
+</a>
+
+<h1>Before we unsubscribe you{% if name %} from name{% endif %}...</h1>
+<h2>Are you sure you want to unsubscribe from Flyer Poke?</h2>
+
+<p id="blurb">
+  If you unsubscribe, you won't get helpful reminders to flyer for
+  your clubs{% if not name %}: if a certain club is causing you
+  trouble, you can unsubscribe from just one club. See your flyer
+  email for the right link.<br/>
+  Also, you can let me know which club is troublesome
+  <a href="mailto:{{ contact_info }}">through email</a>{% endif %}.
+</p>
+
+<form method="POST">
+  <button id="signin-button">
+    Yes, unsubscribe me from
+    {% if name %}name{% else %}Flyer Poke{% endif %}
+  </button>
+</form>
+{% endblock %}
