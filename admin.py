@@ -18,16 +18,16 @@ from config import TIMEZONE
 
 class CurrentTimeZone(datetime.tzinfo):
     def utcoffset(self, dt):
-        return TIMEZONE
+        return datetime.timedelta(hours=TIMEZONE)
     def dst(self, dt):
-        return timedelta(0)
+        return datetime.timedelta(0)
     def tzname(self, dt):
         return "US/Eastern"
 
 class Email(BaseHandler):
     def get(self):
         # is it a week day?
-        current_date = datetime.datetime.now(CurrentTimeZone)
+        current_date = datetime.datetime.now(CurrentTimeZone())
         day = current_date.weekday() # starts 0=monday... 6=sunday
         if day < 5:
             # weekday
@@ -38,7 +38,7 @@ class Email(BaseHandler):
             # check if the jobs are past their event date
             flyers = set([j.flyer for j in jobs])
             for flyer in flyers:
-                if current_date > flyer.event_date:
+                if current_date > flyer.event_date.replace(tzinfo=CurrentTimeZone()):
                     flyer.active = False
                     flyer.put()
             for job in jobs:
@@ -72,15 +72,14 @@ class Email(BaseHandler):
                     logging.error("Could not send email")
                     logging.error(message)
             self.response.out.write("Sent emails")
-
         elif day == 6:
             # it's sunday
             # check if the flyers are 
             flyer_query = Flyer.all()
             flyer_query.filter("active =", True)
-            flyers = flyer.query.fetch(200)
+            flyers = flyer_query.fetch(200)
             for flyer in flyers:
-                if current_date > flyer.event_date:
+                if current_date > flyer.event_date.replace(tzinfo=CurrentTimeZone()):
                     flyer.active = False
                     flyer.put()
             # deprecate the jobs

@@ -36,28 +36,13 @@ from config import AFFILIATION, DEBUG, EMAIL_SUFFIX, EMAIL_VERIFY_LIMIT
 ################################################################################
 # utility fns
 
-# YOU WILL HAVE TO REPLACE THIS IF YOU DON'T GO TO COLUMBIA
-# this checks the format of the UNI, which all columbia emails adhere to
-def check_email(email):
-    return re.match("^\w{2,3}\d{4}$", email)
-
-# checks emails for formatting
+# checks emails for formatting, normalizes the email
 def normalize_email(email):
     if re.match("^\w{2,3}\d{4}$", email):
         return email+EMAIL_SUFFIX
     if re.match("^\w{2,3}\d{4}@columbia.edu$", email):
         return email
     return False
-
-def generate_hash(base):
-    md5 = hashlib.md5()
-    md5.update(base)
-    return md5.hexdigest()
-def generate_random_hash(base):
-    return generate_hash(base + str(time.time()))
-
-def slugify(s):
-    return re.sub("\W",'', s).lower()
 
 def add_notify(title, body):
     session = get_current_session()
@@ -69,19 +54,6 @@ def add_notify(title, body):
             session["notify"] = cur
     else:
         session["notify"] = cur
-
-def get_or_make(Obj, key_name):
-    """Retrieves or creates the object keyed on key_name
-    Returns tuple with object and boolean indicating whether it was created"""
-    def txn(key_name):
-        made = False
-        entity = Obj.get_by_key_name(key_name)
-        if entity is None:
-            entity = Obj(key_name=key_name)
-            entity.put()
-            made = True
-        return (entity, made)
-    return db.run_in_transaction(txn, key_name)
 
 def get_email(user):
     """Get email object associated with user"""
@@ -361,7 +333,8 @@ class ClubEdit(BaseHandler):
         # add emails
         email_block = self.request.get("newemails")
         emails_raw = [e for e in re.split("[\s\,\n]", email_block) if e]
-        emails = [e for e in emails_raw if check_email(e)]
+        emails = [normalize_email(e) for e in emails_raw]
+        emails = [e for e in emails if e]
         for email in emails:
             # add a suffix
             email = normalize_email(email)
@@ -489,6 +462,12 @@ class DeleteEmail(BaseHandler):
         # hail our success
         add_notify("Notice", "Email deleted")
         self.redirect("/club/%s" % club.slug)
+
+# /logout (?)
+# logout, of course
+class Logout(BaseHandler):
+    def get(self):
+        self.redirect(users.create_logout_url("/"))
 
 ################################################################################
 # non-admin stuff
