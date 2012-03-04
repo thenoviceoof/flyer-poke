@@ -29,7 +29,7 @@
     border-color: #555;
     background-color: #AAA;
 }
-.emailoptout:nth-child(even) {
+.emailoptougt:nth-child(even) {
     border-color: #555;
     background-color: #AAA;
 }
