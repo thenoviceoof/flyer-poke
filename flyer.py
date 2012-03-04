@@ -598,35 +598,52 @@ class Done(BaseHandler):
         else:
             self.error(404)
 
+# /stop_club/(\w+)
+# stop mail from a certain club to someone
 class StopClubMail(BaseHandler):
     def get(self, job_id):
-        pass
-        # !!! have to delete jobs, set user to no 
-        # email = Email.get(email_id)
-        # q = Job.all()
-        # q.filter("email =", email)
-        # jobs = q.fetch(BOUND)
-        # for job in jobs:
-        #     job.delete()
-        # self.response.out.write(template.render("templates/sorry.html", {}))
+        # display the "are you sure?" page
+        self.response.out.write(template.render("templates/stop_certain.html",
+                                                {}))
+    # do the actual delete
+    def post(self, job_id):
+        job = Job.get_by_key_name(job_id)
+        # make sure the job is recent
+        if not(job.active):
+            self.error(404)
+        club = job.flyer.club
+        email = job.email
+        # find the email-club join
+        join_query = EmailToClub.all()
+        join_query.filter("email =", email)
+        join_query.filter("club =", club)
+        join = join_query.get()
+        # do the delete
+        join.delete()
+        self.response.out.write(template.render("templates/sorry.html", {}))
 
+# /stop_all/(\w+)
+# stop mail from all clubs to someone
 class StopAllMail(BaseHandler):
-    def get(self, email_id):
-        pass
-        # !!! have to delete jobs, set user to no 
-        # email = Email.get(email_id)
-        # q = Job.all()
-        # q.filter("email =", email)
-        # jobs = q.fetch(BOUND)
-        # for job in jobs:
-        #     job.delete()
-        # self.response.out.write(template.render("templates/sorry.html", {}))
+    def get(self, job_id):
+        # display the "are you sure?" page
+        self.response.out.write(template.render("templates/stop_certain.html",
+                                                {}))
 
-class Logout(BaseHandler):
-    def get(self):
-        session = get_current_session()
-        session.terminate()
-        self.redirect("/")
+    def post(self, job_id):
+        job = Job.get_by_key_name(job_id)
+        # make sure the job is recent
+        if not(job.active):
+            self.error(404)
+        email = job.email
+        # find the email-club join
+        join_query = EmailToClub.all()
+        join_query.filter("email =", email)
+        joins = join_query.fetch(20)
+        # do the delete
+        for join in joins:
+            join.delete()
+        self.response.out.write(template.render("templates/sorry.html", {}))
 
 application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
