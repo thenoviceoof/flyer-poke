@@ -6,16 +6,29 @@
 </ul>
 
 <h1>New Emails</h1>
+<ul>
 {% for email in emails %}
 <li>{{ email.email }}</li>
 {% endfor %}
+</ul>
 
 <h1>New Flyers</h1>
+<ul>
 {% for flyer in flyers %}
 <li>{{ flyer.name }} by {{ flyer.club.name }}</li>
 {% endfor %}
+</ul>
 
 <h1>New Email/Club Joins</h1>
+<ul>
 {% for joint in joints %}
 <li>Join {{ joint.email.email }} and {{ joint.club.name }}</li>
 {% endfor %}
+</ul>
+
+<h1>Disabled Email/Club Joins</h1>
+<ul>
+{% for joint in dead_joints %}
+<li>Sever {{ joint.email.email }} and {{ joint.club.name }}</li>
+{% endfor %}
+</ul>

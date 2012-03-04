@@ -144,6 +144,16 @@ class SendAdminNotifications(BaseHandler):
         joint_query = EmailToClub.all()
         joint_query.filter("created_at >", yesterday)
         new_joints = joint_query.fetch(100)
+        # and get the newly disabled links
+        joint_query = EmailToClub.all()
+        joint_query.filter("updated_at >", yesterday)
+        joint_query.filter("enable =", False)
+        dead_joints = joint_query.fetch(100)
+
+        if (not(new_clubs) and not(new_emails) and not(new_flyers)
+            and not(new_joints)):
+            self.response.out.write("Nothing to email")
+            return
 
         # email sending pre-computation
         fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
@@ -157,14 +167,15 @@ class SendAdminNotifications(BaseHandler):
                                       {"clubs": new_clubs,
                                        "emails": new_emails,
                                        "flyers": new_flyers,
-                                       "joints": new_joints})
+                                       "joints": new_joints,
+                                       "dead_joints": dead_joints})
         try:
             msg.send()
         except apiproxy_errors.OverQuotaError, (message,):
             # Log the error.
             logging.error("Could not send email")
             logging.error(message)
-        self.response.out.write("Sent emails")        
+        self.response.out.write("Sent emails")
 
 application = webapp.WSGIApplication(
     [('/tasks/email', EmailHandler),

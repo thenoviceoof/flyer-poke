@@ -86,3 +86,4 @@ class EmailToClub(db.Model):
     admin = db.BooleanProperty(default=False)
     # timestamps
     created_at = db.DateTimeProperty(auto_now_add=True)
+    updated_at = db.DateTimeProperty(auto_now_add=True)

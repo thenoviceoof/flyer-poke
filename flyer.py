@@ -645,6 +645,7 @@ class StopClubMail(BaseHandler):
         join = join_query.get()
         # do the delete
         join.enable = False
+        join.updated_at = datetime.now()
         join.put()
         # mark all the jobs inactive
         flyer_query = Flyer.all()
@@ -696,6 +697,7 @@ class StopAllMail(BaseHandler):
         # do the delete
         for join in joins:
             join.enable = False
+            join.updated_at = datetime.now()
             join.put()
         # mark all the jobs inactive
         job_query = Job.all()
