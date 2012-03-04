@@ -602,9 +602,19 @@ class Done(BaseHandler):
 # stop mail from a certain club to someone
 class StopClubMail(BaseHandler):
     def get(self, job_id):
+        job = Job.get_by_key_name(job_id)
+        # make sure the job is recent
+        if not(job):
+            self.error(404)
+            return
+        if not(job.active):
+            self.error(404)
+            return
+        club = job.flyer.club
+
         # display the "are you sure?" page
         self.response.out.write(template.render("templates/stop_certain.html",
-                                                {}))
+                                                {"name": club.name}))
     # do the actual delete
     def post(self, job_id):
         job = Job.get_by_key_name(job_id)
@@ -620,12 +630,36 @@ class StopClubMail(BaseHandler):
         join = join_query.get()
         # do the delete
         join.delete()
-        self.response.out.write(template.render("templates/sorry.html", {}))
+        # mark all the jobs inactive
+        flyer_query = Flyer.all()
+        flyer_query.filter("club =", club)
+        flyer_query.filter("active =", True)
+        flyers = flyer_query.fetch(20)
+        for flyer in flyers:
+            job_query = Job.all()
+            job_query.filter("email =", email)
+            job_query.filter("flyer =", flyer)
+            job_query.filter("active =", True)
+            job = job_query.get()
+            if job:
+                job.active = False
+                job.put()
+        self.response.out.write(template.render("templates/sorry.html",
+                                                {}))
 
 # /stop_all/(\w+)
 # stop mail from all clubs to someone
 class StopAllMail(BaseHandler):
     def get(self, job_id):
+        job = Job.get_by_key_name(job_id)
+        # make sure the job is recent
+        if not(job):
+            self.error(404)
+            return
+        if not(job.active):
+            self.error(404)
+            return
+
         # display the "are you sure?" page
         self.response.out.write(template.render("templates/stop_certain.html",
                                                 {}))
@@ -643,6 +677,14 @@ class StopAllMail(BaseHandler):
         # do the delete
         for join in joins:
             join.delete()
+        # mark all the jobs inactive
+        job_query = Job.all()
+        job_query.filter("email =", email)
+        job_query.filter("active =", True)
+        jobs = job_query.fetch(20)
+        for job in jobs:
+            job.active = False
+            job.put()
         self.response.out.write(template.render("templates/sorry.html", {}))
 
 application = webapp.WSGIApplication(
