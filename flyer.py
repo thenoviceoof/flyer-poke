@@ -534,7 +534,10 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         flyer.name = flyer_name
         flyer.club = club
         flyer.upload_date = datetime.today()
-        flyer.event_date = datetime.strptime(event_date, "%Y/%m/%d")
+        # chang the time to right before midnight
+        event_date = datetime.strptime(event_date, "%Y/%m/%d")
+        event_date.replace(hour="23", minute="59")
+        flyer.event_date = event_date
         flyer.put()
 
         # make a bunch of jobs from the club and flyer

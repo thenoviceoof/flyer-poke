@@ -9,7 +9,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.api.app_identity import get_application_id
 
-from datetime import datetime, tzinfo
+from datetime import datetime, tzinfo, timedelta
 import time
 import logging
 
@@ -19,16 +19,16 @@ from config import TIMEZONE, ADMIN_EMAIL
 
 class CurrentTimeZone(tzinfo):
     def utcoffset(self, dt):
-        return datetime.timedelta(hours=TIMEZONE)
+        return timedelta(hours=TIMEZONE)
     def dst(self, dt):
-        return datetime.timedelta(0)
+        return timedelta(0)
     def tzname(self, dt):
         return "US/Eastern"
 
 class EmailHandler(BaseHandler):
     def get(self):
         # is it a week day?
-        current_date = datetime.datetime.now(CurrentTimeZone())
+        current_date = datetime.now(CurrentTimeZone())
         day = current_date.weekday() # starts 0=monday... 6=sunday
         if day < 5:
             # weekday
@@ -113,7 +113,7 @@ class Clean(BaseHandler):
     def get(self):
         t = list(time.localtime())
         t[2] -= 31
-        dt = datetime.datetime.fromtimestamp(time.mktime(t))
+        dt = datetime.fromtimestamp(time.mktime(t))
 
         jobs = Job.all()
         jobs.filter("date <", dt)
@@ -129,7 +129,7 @@ class SendAdminNotifications(BaseHandler):
         timestamp = time.mktime(datetime.now().timetuple())-24*3600
         yesterday = datetime.fromtimestamp(timestamp)
         # count how many flyers are going out
-        current_date = datetime.datetime.now(CurrentTimeZone())
+        current_date = datetime.now(CurrentTimeZone())
         day = current_date.weekday() # starts 0=monday... 6=sunday
         if day < 5:
             job_query = Job.all()
