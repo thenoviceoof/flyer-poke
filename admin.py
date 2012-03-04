@@ -128,6 +128,16 @@ class SendAdminNotifications(BaseHandler):
     def get(self):
         timestamp = time.mktime(datetime.now().timetuple())-24*3600
         yesterday = datetime.fromtimestamp(timestamp)
+        # count how many flyers are going out
+        current_date = datetime.datetime.now(CurrentTimeZone())
+        day = current_date.weekday() # starts 0=monday... 6=sunday
+        if day < 5:
+            job_query = Job.all()
+            job_query.filter("active =", True)
+            job_query.filter("state !=", DONE)
+            flyer_count = job_query.count()
+        else:
+            flyer_count = 0
         # get new clubs
         club_query = Club.all()
         club_query.filter("created_at >", yesterday)
@@ -164,7 +174,8 @@ class SendAdminNotifications(BaseHandler):
                                 to = ADMIN_EMAIL)
         msg.subject = "[Flyer] Admin stats (%s)" % date
         msg.html    = template.render("templates/email_stats.html",
-                                      {"clubs": new_clubs,
+                                      {"flyer_count": flyer_count,
+                                       "clubs": new_clubs,
                                        "emails": new_emails,
                                        "flyers": new_flyers,
                                        "joints": new_joints,
