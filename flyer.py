@@ -560,6 +560,10 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         if not job:
             self.error(404)
         flyer = job.flyer
+        email = job.email
+        # update the email
+        email.updated_at = datetime.datetime.now()
+        email.put()
         if flyer.flyer:
             if job.state == INIT:
                 job.state = DOWNLOADED
@@ -580,6 +584,10 @@ class Done(BaseHandler):
         if job and job.state != DONE and job.active == True:
             job.state = DONE
             job.put()
+            # update the email
+            email = job.email
+            email.updated_at = datetime.datetime.now()
+            email.put()
             # count the number of jobs attached to this flyer
             job_query = Job.all()
             job_query.filter("flyer =", job.flyer)
@@ -623,6 +631,9 @@ class StopClubMail(BaseHandler):
             self.error(404)
         club = job.flyer.club
         email = job.email
+        # update the email
+        email.updated_at = datetime.datetime.now()
+        email.put()
         # find the email-club join
         join_query = EmailToClub.all()
         join_query.filter("email =", email)
@@ -670,6 +681,9 @@ class StopAllMail(BaseHandler):
         if not(job.active):
             self.error(404)
         email = job.email
+        email.enable = False
+        email.updated_at = datetime.datetime.now()
+        email.put()
         # find the email-club join
         join_query = EmailToClub.all()
         join_query.filter("email =", email)

@@ -33,6 +33,7 @@ class Email(db.Model):
     user_request_time = db.DateTimeProperty()
     # timestamps
     created_at = db.DateTimeProperty(auto_now_add=True)
+    updated_at = db.DateTimeProperty(auto_now_add=True)
 
 class Flyer(db.Model):
     # stores the hash in a easy to access place
@@ -49,7 +50,7 @@ class Flyer(db.Model):
     renewal = db.IntegerProperty()
     # timestamps
     upload_date = db.DateTimeProperty(auto_now_add=True)
-    last_sent_date = db.DateTimeProperty()
+    last_sent_date = db.DateTimeProperty() # don't use at the moment
     event_date = db.DateTimeProperty()
 
 # a many-many link between flyers and emails
