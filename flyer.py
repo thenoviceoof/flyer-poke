@@ -21,7 +21,7 @@ import hashlib
 import time
 import re
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from operator import itemgetter
 import urllib
 
@@ -191,7 +191,7 @@ class LinkEmail(BaseHandler):
 
             # send a verification email
             domain = "http://%s.appspot.com" % get_application_id()
-            verify_addr = domain + "/linkemail/%s" % email.user_request_key
+            verify_addr = domain + "/link/email/%s" % email.user_request_key
             msg = mail.EmailMessage()
             fromaddr = "noreply@%s.appspotmail.com" % get_application_id()
             msg.sender  = "Flyer Guy <%s>" % fromaddr
@@ -338,16 +338,15 @@ class ClubEdit(BaseHandler):
         for email in emails:
             # add a suffix
             email = normalize_email(email)
-            # use a hash for emails, accessed when deleting
-            email_obj, made = None, None
-            while not(email_obj) or not(made):
-                # randomly generate a key
-                email_key = generate_hash(email)[:10]
-                email_obj, made = get_or_make(Email, email_key)
-                if made:
-                    email_obj.email = email
-                    email_obj.id = email_key
-                    email_obj.put()
+            # use a hash for emails, assume it is unique
+            email_key = generate_hash(email)[:10]
+            email_obj, made = get_or_make(Email, email_key)
+            if not(made):
+                logging.info("Email already in the system")
+                continue
+            email_obj.email = email
+            email_obj.id = email_key
+            email_obj.put()
             # make sure this pair is unique
             query = EmailToClub.all()
             query.filter('email =', email_obj)
@@ -536,7 +535,7 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         flyer.upload_date = datetime.today()
         # chang the time to right before midnight
         event_date = datetime.strptime(event_date, "%Y/%m/%d")
-        event_date.replace(hour="23", minute="59")
+        event_date.replace(hour=23, minute=59)
         flyer.event_date = event_date
         flyer.put()
 
@@ -718,6 +717,7 @@ application = webapp.WSGIApplication(
     [('/', Index), # both front and orgs list
      # person handling
      ('/link/email', LinkEmail),
+     ('/link/email/(\w+)', VerifyEmail),
      ('/logout', Logout),
      # club editing
      ('/new-club', ClubNew),
