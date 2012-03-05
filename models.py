@@ -67,9 +67,9 @@ class Job(db.Model):
     # reporting: init (0), downloaded (1), done (2), error (-1)
     # however, error is never used?
     state = db.IntegerProperty(default=0)
-    last_updated = db.DateTimeProperty(auto_now_add=True)
     # timestamps
     created_at = db.DateTimeProperty(auto_now_add=True)
+    updated_at = db.DateTimeProperty(auto_now_add=True)
 
 ################################################################################
 # Mappings

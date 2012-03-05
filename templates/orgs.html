@@ -72,7 +72,7 @@
     var data{{ flyer.id }} = [
       {% for job in flyer.done_jobs %}
         {"name": "{{ job.email.email }}",
-         "update": new Date("{{ job.last_updated|date }}") },
+         "update": new Date("{{ job.updated_at|date }}") },
       {% endfor %}
     ];
     // bin the data

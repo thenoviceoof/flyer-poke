@@ -572,6 +572,7 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         email.put()
         if flyer.flyer:
             if job.state == INIT:
+                job.updated_at = datetime.now()
                 job.state = DOWNLOADED
                 job.put()
             # get the blobstore key, send it off
@@ -588,6 +589,7 @@ class Done(BaseHandler):
         job = Job.get_by_key_name(job_id)
 
         if job and job.state != DONE and job.active == True:
+            job.updated_at = datetime.now()
             job.state = DONE
             job.put()
             # update the email
