@@ -75,7 +75,7 @@ class EmailHandler(BaseHandler):
             self.response.out.write("Sent emails")
         elif day == 6:
             # it's sunday
-            # check if the flyers are 
+            # check if the flyers should be rolled over
             flyer_query = Flyer.all()
             flyer_query.filter("active =", True)
             flyers = flyer_query.fetch(200)

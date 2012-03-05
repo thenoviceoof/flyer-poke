@@ -14,3 +14,8 @@ indexes:
   properties:
   - name: enable
   - name: updated_at
+
+- kind: Job
+  properties:
+  - name: active
+  - name: state

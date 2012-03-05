@@ -568,7 +568,7 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         flyer = job.flyer
         email = job.email
         # update the email
-        email.updated_at = datetime.datetime.now()
+        email.updated_at = datetime.now()
         email.put()
         if flyer.flyer:
             if job.state == INIT:
@@ -592,7 +592,7 @@ class Done(BaseHandler):
             job.put()
             # update the email
             email = job.email
-            email.updated_at = datetime.datetime.now()
+            email.updated_at = datetime.now()
             email.put()
             # count the number of jobs attached to this flyer
             job_query = Job.all()
