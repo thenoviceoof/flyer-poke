@@ -533,9 +533,9 @@ class FlyerUpload(blobstore_handlers.BlobstoreUploadHandler):
         flyer.name = flyer_name
         flyer.club = club
         flyer.upload_date = datetime.today()
-        # chang the time to right before midnight
+        # change the time to right before midnight
         event_date = datetime.strptime(event_date, "%Y/%m/%d")
-        event_date.replace(hour=23, minute=59)
+        event_date = event_date.replace(hour=23, minute=59)
         flyer.event_date = event_date
         flyer.put()
 
