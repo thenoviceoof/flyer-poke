@@ -52,9 +52,6 @@ class EmailHandler(BaseHandler):
             # send the emails: bin jobs by email, send
             emails = set([j.email for j in jobs])
 
-            logging.info(str(jobs))
-            logging.info(str(emails))
-
             # !!!
             # email sending pre-computation
             domain = "http://%s.appspot.com" % get_application_id()
