@@ -35,6 +35,19 @@ class Email(db.Model):
     created_at = db.DateTimeProperty(auto_now_add=True)
     updated_at = db.DateTimeProperty(auto_now_add=True)
 
+    # here so we can set together email objects
+    def __hash__(self):
+        return self.email.__hash__()
+    def __eq__(self, other):
+        if isinstance(other, Email):
+            return self.email == other.email
+        return NotImplemented
+    def __ne__(self, other):
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return result
+        return not result
+
 class Flyer(db.Model):
     # stores the hash in a easy to access place
     id = db.StringProperty()

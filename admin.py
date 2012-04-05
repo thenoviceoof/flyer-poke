@@ -39,16 +39,21 @@ class EmailHandler(BaseHandler):
             # check if the jobs are past their event date
             flyers = set([j.flyer for j in jobs])
             for flyer in flyers:
-                if current_date > flyer.event_date.replace(tzinfo=CurrentTimeZone()):
+                flyer_date = flyer.event_date.replace(tzinfo=CurrentTimeZone())
+                if current_date > flyer_date:
                     flyer.active = False
                     flyer.put()
             for job in jobs:
                 if not(job.flyer.active):
                     job.active = False
                     job.put()
-            jobs = [j for j in jobs if j.active]
+            # only get the un-done jobs
+            jobs = [j for j in jobs if j.active and j.state != 2]
             # send the emails: bin jobs by email, send
             emails = set([j.email for j in jobs])
+
+            logging.info(str(jobs))
+            logging.info(str(emails))
 
             # !!!
             # email sending pre-computation
